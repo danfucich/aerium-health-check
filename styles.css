@@ -3,18 +3,18 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f4f6f8; /* Light background */
+    background-color: #f4f6f8; /* Light gray background */
     color: #2c3e50; /* Deep blue-gray text */
     text-align: center;
     margin: 0;
-    padding: 0;
+    padding: 20px;
 }
 
 /* Title Styling */
 h1 {
     font-size: 2rem;
     font-weight: 600;
-    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 /* Video Container */
@@ -35,83 +35,11 @@ video {
     border-radius: 12px;
 }
 
-/* Overlay (Green Box) */
+/* Overlay (Green Box for Alignment) */
 #overlay {
     position: absolute;
     top: 50%;
     left: 50%;
     width: 32%; /* 7.5:4 aspect ratio */
-    height: 60%;
-    transform: translate(-50%, -50%);
-    border: 3px solid #27ae60; /* Vibrant green */
-    background-color: rgba(39, 174, 96, 0.2); /* Slightly transparent green */
-    border-radius: 8px; /* Softer edges */
-}
-
-/* Full-width Button Styling */
-button {
-    margin-top: 10px;
-    padding: 15px;
-    font-size: 18px;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 90%; /* Make it span the whole screen width */
-    max-width: 600px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Analyze Button */
-#capture {
-    background-color: #27ae60; /* Green */
-    color: white;
-}
-
-#capture:hover {
-    background-color: #219653;
-}
-
-/* Retry Button */
-.retry-btn {
-    background-color: #e74c3c; /* Red */
-    color: white;
-    display: none; /* Initially hidden */
-}
-
-.retry-btn:hover {
-    background-color: #c0392b;
-}
-
-/* Loading Bar */
-#loading-container {
-    width: 90%;
-    max-width: 600px;
-    height: 10px;
-    background-color: #ddd;
-    border-radius: 8px;
-    margin: 10px auto;
-    display: none;
-    overflow: hidden;
-}
-
-#loading-bar {
-    width: 0%;
-    height: 100%;
-    background-color: #27ae60;
-    transition: width 0.1s linear;
-}
-
-/* Result Display */
-#result {
-    font-size: 18px;
-    font-weight: bold;
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 8px;
-    background-color: #ecf0f1; /* Soft gray */
-    display: inline-block;
-}
+    height: 60%; /* Taller than wide */
+    transform: translate(-5
