@@ -26,11 +26,11 @@ video {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 50%;
-    height: 30%;
+    width: 32%; /* Width for 7.5:4 ratio */
+    height: 60%; /* Taller than wide */
     transform: translate(-50%, -50%);
-    border: 3px solid red;
-    background-color: rgba(255, 0, 0, 0.1);
+    border: 3px solid green; /* Changed border to green */
+    background-color: rgba(0, 255, 0, 0.1); /* Light green transparency */
 }
 
 button {
