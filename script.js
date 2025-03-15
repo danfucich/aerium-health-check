@@ -1,45 +1,46 @@
 const video = document.getElementById("camera");
-const overlay = document.getElementById("overlay");
 const captureButton = document.getElementById("capture");
 const resultText = document.getElementById("result");
 
-// Color thresholds
-const thresholds = {
-    green: { min: [30, 80, 30], max: [100, 255, 100] },
-    yellow: { min: [150, 150, 0], max: [255, 255, 100] },
-    white: { min: [200, 200, 200], max: [255, 255, 255] },
-    darkGreen: { min: [0, 50, 0], max: [30, 120, 30] } // "Time for a new refill!"
-};
+// Create a retry button (hidden by default)
+const retryButton = document.createElement("button");
+retryButton.textContent = "Retry Camera Access";
+retryButton.style.display = "none"; // Hide initially
+retryButton.onclick = requestCameraAccess;
+document.body.appendChild(retryButton);
 
-// Access the camera
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-    .then(stream => {
-        video.srcObject = stream;
-    })
-    .catch(err => {
-        console.error("Camera access denied:", err);
-        resultText.textContent = "Error: Unable to access camera.";
-    });
+// Function to request camera access
+function requestCameraAccess() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+            video.srcObject = stream;
+            retryButton.style.display = "none"; // Hide retry button if successful
+        })
+        .catch(err => {
+            console.error("Camera access denied:", err);
+            resultText.textContent = "Error: Unable to access camera. Please allow permissions.";
+            retryButton.style.display = "block"; // Show retry button
+        });
+}
 
-// Capture and analyze pixels
+// Initial attempt to get camera access
+requestCameraAccess();
+
+// Capture and analyze pixels (same functionality as before)
 captureButton.addEventListener("click", function() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
-    // Set canvas size to video feed
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
-    // Draw video frame on canvas
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get overlay position
-    const xStart = Math.floor(canvas.width * 0.25);
-    const yStart = Math.floor(canvas.height * 0.35);
-    const xEnd = xStart + Math.floor(canvas.width * 0.50);
-    const yEnd = yStart + Math.floor(canvas.height * 0.30);
+    // Get pixels from overlay area
+    const xStart = Math.floor(canvas.width * 0.34);
+    const yStart = Math.floor(canvas.height * 0.20);
+    const xEnd = xStart + Math.floor(canvas.width * 0.32);
+    const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
-    // Sample 3 random pixels inside the rectangle
     let colorResults = [];
     for (let i = 0; i < 3; i++) {
         let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
@@ -48,7 +49,7 @@ captureButton.addEventListener("click", function() {
         colorResults.push([pixel[0], pixel[1], pixel[2]]);
     }
 
-    // Determine health status
+    // Determine color category
     let status = "Unknown";
     for (let color of colorResults) {
         if (isWithinRange(color, thresholds.darkGreen)) {
