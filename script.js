@@ -2,32 +2,23 @@ const video = document.getElementById("camera");
 const captureButton = document.getElementById("capture");
 const resultText = document.getElementById("result");
 
-// Create a retry button (hidden by default)
-const retryButton = document.createElement("button");
-retryButton.textContent = "Retry Camera Access";
-retryButton.style.display = "none"; // Hide initially
-retryButton.onclick = requestCameraAccess;
-document.body.appendChild(retryButton);
-
 // Function to request camera access
 function requestCameraAccess() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
         .then(stream => {
             video.srcObject = stream;
-            retryButton.style.display = "none"; // Hide retry button if successful
         })
         .catch(err => {
             console.error("Camera access denied:", err);
             resultText.textContent = "Error: Unable to access camera. Please allow permissions.";
-            retryButton.style.display = "block"; // Show retry button
         });
 }
 
-// Initial attempt to get camera access
+// Request camera access on page load
 requestCameraAccess();
 
-// Capture and analyze pixels (same functionality as before)
-captureButton.addEventListener("click", function() {
+// Function to analyze colors from the video feed
+function analyzeColor() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -35,11 +26,11 @@ captureButton.addEventListener("click", function() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get pixels from overlay area
-    const xStart = Math.floor(canvas.width * 0.34);
-    const yStart = Math.floor(canvas.height * 0.20);
-    const xEnd = xStart + Math.floor(canvas.width * 0.32);
-    const yEnd = yStart + Math.floor(canvas.height * 0.60);
+    // Define the overlay region (centered rectangle)
+    const xStart = Math.floor(canvas.width * 0.25);
+    const yStart = Math.floor(canvas.height * 0.35);
+    const xEnd = xStart + Math.floor(canvas.width * 0.50);
+    const yEnd = yStart + Math.floor(canvas.height * 0.30);
 
     let colorResults = [];
     for (let i = 0; i < 3; i++) {
@@ -49,24 +40,27 @@ captureButton.addEventListener("click", function() {
         colorResults.push([pixel[0], pixel[1], pixel[2]]);
     }
 
-    // Determine color category
+    // Determine status based on color
     let status = "Unknown";
     for (let color of colorResults) {
-        if (isWithinRange(color, thresholds.darkGreen)) {
+        if (isWithinRange(color, { min: [0, 50, 0], max: [30, 120, 30] })) {
             status = "Time for a new refill!";
             break;
-        } else if (isWithinRange(color, thresholds.green)) {
+        } else if (isWithinRange(color, { min: [30, 80, 30], max: [100, 255, 100] })) {
             status = "Healthy!";
-        } else if (isWithinRange(color, thresholds.yellow)) {
+        } else if (isWithinRange(color, { min: [150, 150, 0], max: [255, 255, 100] })) {
             status = "Warning! Culture may be struggling.";
-        } else if (isWithinRange(color, thresholds.white)) {
+        } else if (isWithinRange(color, { min: [200, 200, 200], max: [255, 255, 255] })) {
             status = "Culture crashed! White/cloudy detected.";
             break;
         }
     }
 
     resultText.textContent = `Status: ${status}`;
-});
+}
+
+// Attach event listener to button
+captureButton.addEventListener("click", analyzeColor);
 
 // Function to check if color is within range
 function isWithinRange(color, range) {
