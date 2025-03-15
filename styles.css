@@ -28,8 +28,8 @@ video {
     width: 32%; /* Width adjusted for 7.5:4 ratio */
     height: 60%; /* Taller than wide */
     transform: translate(-50%, -50%);
-    border: 3px solid red;
-    background-color: rgba(255, 0, 0, 0.1); /* Semi-transparent for visibility */
+    border: 3px solid #005400; /* Dark green border */
+    background-color: rgba(0, 84, 0, 0.2); /* Semi-transparent dark green */
 }
 
 button {
