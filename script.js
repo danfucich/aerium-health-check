@@ -26,48 +26,60 @@ function analyzeColor() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Define the overlay region (centered rectangle)
     // Define the overlay region (7.5:4 aspect ratio)
     const xStart = Math.floor(canvas.width * 0.34);
     const yStart = Math.floor(canvas.height * 0.20);
     const xEnd = xStart + Math.floor(canvas.width * 0.32);
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
-    let colorResults = [];
-    for (let i = 0; i < 3; i++) {
-        let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
-        let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
-        let pixel = ctx.getImageData(x, y, 1, 1).data;
-        colorResults.push([pixel[0], pixel[1], pixel[2]]);
-    }
+    let colors = [];
 
-    // Determine status based on color
-    let status = "Unknown";
-    for (let color of colorResults) {
-        if (isWithinRange(color, { min: [0, 50, 0], max: [30, 120, 30] })) {
-            status = "Time for a new refill!";
-            break;
-        } else if (isWithinRange(color, { min: [30, 80, 30], max: [100, 255, 100] })) {
-            status = "Healthy!";
-        } else if (isWithinRange(color, { min: [150, 150, 0], max: [255, 255, 100] })) {
-            status = "Warning! Culture may be stressed.";
-        } else if (isWithinRange(color, { min: [200, 200, 200], max: [255, 255, 255] })) {
-            status = "Culture crash? White/cloudy detected.";
-            break;
+    // Use a 4x4 grid (16 points) instead of just 3 random points
+    const gridSize = 4;
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            let x = xStart + Math.floor((xEnd - xStart) * (i / (gridSize - 1)));
+            let y = yStart + Math.floor((yEnd - yStart) * (j / (gridSize - 1)));
+            let pixel = ctx.getImageData(x, y, 1, 1).data;
+            colors.push([pixel[0], pixel[1], pixel[2]]);
         }
     }
 
+    // Compute median RGB values to avoid outliers
+    let medianRGB = getMedianRGB(colors);
+
+    // Determine spirulina health based on improved green detection
+    let status = detectSpirulinaHealth(medianRGB);
     resultText.textContent = `Status: ${status}`;
+}
+
+// Function to get median RGB value (more stable than average)
+function getMedianRGB(colors) {
+    let sortedR = colors.map(c => c[0]).sort((a, b) => a - b);
+    let sortedG = colors.map(c => c[1]).sort((a, b) => a - b);
+    let sortedB = colors.map(c => c[2]).sort((a, b) => a - b);
+
+    let mid = Math.floor(colors.length / 2);
+    return [sortedR[mid], sortedG[mid], sortedB[mid]];
+}
+
+// Function to determine spirulina health based on improved RGB sensing
+function detectSpirulinaHealth(rgb) {
+    let [r, g, b] = rgb;
+    let greenRatio = g / (r + g + b); // Normalize green intensity
+
+    if (greenRatio > 0.45 && g > 80) {
+        return "Healthy!"; // Bright green, strong culture
+    } else if (greenRatio > 0.35 && g > 60) {
+        return "Warning! Culture may be stressed"; // Less green, more yellowish
+    } else if (r > 180 && g > 180 && b > 180) {
+        return "Culture crash? White/cloudy detected"; // High brightness = dead culture
+    } else if (greenRatio < 0.3) {
+        return "Time for a new refill!"; // Dark or brownish culture
+    } else {
+        return "Unknown Status";
+    }
 }
 
 // Attach event listener to button
 captureButton.addEventListener("click", analyzeColor);
-
-// Function to check if color is within range
-function isWithinRange(color, range) {
-    return (
-        color[0] >= range.min[0] && color[0] <= range.max[0] &&
-        color[1] >= range.min[1] && color[1] <= range.max[1] &&
-        color[2] >= range.min[2] && color[2] <= range.max[2]
-    );
-}
