@@ -2,7 +2,6 @@ const video = document.getElementById("camera");
 const captureButton = document.getElementById("capture");
 const resultText = document.getElementById("result");
 
-// Function to request camera access
 function requestCameraAccess() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
         .then(stream => {
@@ -17,7 +16,27 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
-// Function to analyze colors from the video feed
+// Function to convert RGB to HSV
+function rgbToHsv(r, g, b) {
+    r /= 255, g /= 255, b /= 255;
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, v = max;
+    let d = max - min;
+    s = max === 0 ? 0 : d / max;
+    if (max === min) {
+        h = 0; // No hue
+    } else {
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return [h * 360, s * 100, v * 100]; // Return HSV with Hue in degrees
+}
+
+// Function to analyze multiple pixels from video
 function analyzeColor() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -26,48 +45,50 @@ function analyzeColor() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Define the overlay region (centered rectangle)
-    // Define the overlay region (7.5:4 aspect ratio)
     const xStart = Math.floor(canvas.width * 0.34);
     const yStart = Math.floor(canvas.height * 0.20);
     const xEnd = xStart + Math.floor(canvas.width * 0.32);
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
-    let colorResults = [];
-    for (let i = 0; i < 3; i++) {
-        let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
-        let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
-        let pixel = ctx.getImageData(x, y, 1, 1).data;
-        colorResults.push([pixel[0], pixel[1], pixel[2]]);
-    }
+    let colors = [];
 
-    // Determine status based on color
-    let status = "Unknown";
-    for (let color of colorResults) {
-        if (isWithinRange(color, { min: [0, 50, 0], max: [30, 120, 30] })) {
-            status = "Time for a new refill!";
-            break;
-        } else if (isWithinRange(color, { min: [30, 80, 30], max: [100, 255, 100] })) {
-            status = "Healthy!";
-        } else if (isWithinRange(color, { min: [150, 150, 0], max: [255, 255, 100] })) {
-            status = "Warning! Culture may be struggling.";
-        } else if (isWithinRange(color, { min: [200, 200, 200], max: [255, 255, 255] })) {
-            status = "Culture crashed! White/cloudy detected.";
-            break;
+    // Use a 4x4 grid (16 sample points) for better accuracy
+    const gridSize = 4;
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            let x = xStart + Math.floor((xEnd - xStart) * (i / (gridSize - 1)));
+            let y = yStart + Math.floor((yEnd - yStart) * (j / (gridSize - 1)));
+            let pixel = ctx.getImageData(x, y, 1, 1).data;
+            let hsv = rgbToHsv(pixel[0], pixel[1], pixel[2]);
+            colors.push(hsv);
         }
     }
 
+    // Sort by Hue and take the median color to avoid outliers
+    colors.sort((a, b) => a[0] - b[0]);
+    let medianIndex = Math.floor(colors.length / 2);
+    let medianColor = colors[medianIndex];
+
+    let status = detectSpirulinaHealth(medianColor);
     resultText.textContent = `Status: ${status}`;
+}
+
+// Function to determine spirulina health condition based on HSV
+function detectSpirulinaHealth(hsv) {
+    let [h, s, v] = hsv;
+
+    if (h >= 85 && h <= 150 && s >= 50) {
+        return "Healthy!"; // Vibrant green
+    } else if (h >= 60 && h < 85 && s >= 40) {
+        return "Warning! Culture may be struggling."; // Yellow-green
+    } else if (h < 60 || v > 80) {
+        return "Culture crashed! White/cloudy detected."; // High brightness means dead culture
+    } else if (h > 150) {
+        return "Time for a new refill!"; // Darker forest green (old spirulina)
+    } else {
+        return "Unknown Status";
+    }
 }
 
 // Attach event listener to button
 captureButton.addEventListener("click", analyzeColor);
-
-// Function to check if color is within range
-function isWithinRange(color, range) {
-    return (
-        color[0] >= range.min[0] && color[0] <= range.max[0] &&
-        color[1] >= range.min[1] && color[1] <= range.max[1] &&
-        color[2] >= range.min[2] && color[2] <= range.max[2]
-    );
-}
