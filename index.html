@@ -1,31 +1,28 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Is my algae healthy?</title>
+    <title>Photobioreactor Health Checker</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <h1>Photobioreactor Health Checker</h1>
-     <p>Align the reactor in the box and press "Analyze"</p>
-     
-     <!-- Move Status Above Video -->
-     <p id="result">Status: Awaiting analysis...</p>
-     
-     <div id="video-container">
-         <video id="camera" autoplay playsinline></video>
-         <div id="overlay"></div>
-     </div>
-     
-     <!-- Make Button Larger & Full-Width -->
-     <button id="capture">Analyze</button>
+    <p>Align the reactor in the box and press "Analyze"</p>
+
+    <!-- Status Message (Now Centered) -->
+    <p id="result">Status: Awaiting analysis...</p>
+
+    <div id="video-container">
+        <video id="camera" autoplay playsinline></video>
+        <div id="overlay"></div>
+    </div>
+
+    <!-- Analyze Button: Full Width & Centered -->
+    <button id="capture">Analyze</button>
 
     <script src="script.js"></script>
 
 </body>
 </html>
-
-
-
