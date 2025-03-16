@@ -1,46 +1,46 @@
+/* Import Poppins Font (Closest to Nordique Pro) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Basic page styling */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
     text-align: center;
     margin: 0;
-    padding: 0;
+    padding: 20px;
+    background-color: #f8f9fa; /* Soft background for contrast */
+    color: #2c3e50; /* Dark gray for better readability */
 }
 
-h1 {
-    margin-top: 10px;
-}
-
-#video-container {
-    position: relative;
-    display: inline-block;
-    width: 90vw;
-    max-width: 600px;
-}
-
-video {
-    width: 100%;
-    height: auto;
-}
-
-#overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 32%; /* Width adjusted for 7.5:4 ratio */
-    height: 60%; /* Taller than wide */
-    transform: translate(-50%, -50%);
-    border: 3px solid #005400; /* Dark green border */
-    background-color: rgba(0, 84, 0, 0.2); /* Semi-transparent dark green */
-}
-
+/* Improve button styling */
 button {
     margin-top: 10px;
-    padding: 10px;
+    padding: 12px 16px;
     font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
+    transition: background 0.3s ease;
+    font-family: 'Poppins', sans-serif; /* Apply Poppins to buttons */
 }
 
+/* Green Analyze button */
+#capture {
+    background-color: #27ae60; /* Modern green */
+    color: white;
+}
+
+#capture:hover {
+    background-color: #219653; /* Slightly darker hover effect */
+}
+
+/* Improve Result Box */
 #result {
     font-size: 18px;
     font-weight: bold;
     margin-top: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #ecf0f1; /* Light gray */
+    display: inline-block;
 }
