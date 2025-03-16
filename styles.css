@@ -1,72 +1,31 @@
-/* Import Poppins Font (Similar to Nordique Pro) */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
-/* Basic page styling */
-body {
-    font-family: 'Poppins', sans-serif;
-    text-align: center;
-    margin: 0;
-    padding: 20px;
-    background-color: #f8f9fa; /* Soft background */
-    color: #2c3e50; /* Dark gray for readability */
-}
-
-/* Video Container */
-#video-container {
-    position: relative;
-    display: inline-block;
-    width: 90vw;
-    max-width: 600px;
-}
-
-/* Video Styling */
-video {
-    width: 100%;
-    height: auto;
-}
-
-/* Restored Overlay (7.5:4 ratio) */
-#overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 32%; /* Adjusted for 7.5:4 aspect ratio */
-    height: 60%;
-    transform: translate(-50%, -50%);
-    border: 3px solid #005400; /* Dark green border */
-    background-color: rgba(0, 84, 0, 0.2); /* Semi-transparent dark green */
-    border-radius: 8px;
-    pointer-events: none; /* Ensures it does not block clicks */
-}
-
-/* Improve button styling */
-button {
-    margin-top: 10px;
-    padding: 12px 16px;
-    font-size: 18px;
+/* Center and Enlarge Button */
+#capture {
+    background-color: #27ae60; /* Green */
+    color: white;
+    font-size: 20px; /* Larger text */
     font-weight: bold;
+    padding: 16px;
+    width: 100%; /* Full-width button */
+    max-width: 600px; /* Prevents it from being too large on big screens */
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
-    font-family: 'Poppins', sans-serif; /* Apply Poppins to buttons */
+    display: block;
+    margin: 15px auto; /* Centers it */
 }
 
-/* Green Analyze button */
-#capture {
-    background-color: #27ae60; /* Modern green */
-    color: white;
-}
-
+/* Button Hover Effect */
 #capture:hover {
-    background-color: #219653; /* Slightly darker hover effect */
+    background-color: #219653;
 }
 
-/* Improve Result Box */
+/* Move Status Above Camera */
 #result {
     font-size: 18px;
     font-weight: bold;
     margin-top: 10px;
+    margin-bottom: 10px; /* Adds spacing before the video feed */
     padding: 12px;
     border-radius: 8px;
     background-color: #ecf0f1; /* Light gray */
