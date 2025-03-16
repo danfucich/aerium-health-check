@@ -80,9 +80,9 @@ function detectSpirulinaHealth(hsv) {
     if (h >= 85 && h <= 150 && s >= 50) {
         return "Healthy!"; // Vibrant green
     } else if (h >= 60 && h < 85 && s >= 40) {
-        return "Warning! Culture may be struggling."; // Yellow-green
+        return "Warning! Culture may be stressed."; // Yellow-green
     } else if (h < 60 || v > 80) {
-        return "Culture crashed! White/cloudy detected."; // High brightness means dead culture
+        return "Culture crash? White/cloudy detected."; // High brightness means dead culture
     } else if (h > 150) {
         return "Time for a new refill!"; // Darker forest green (old spirulina)
     } else {
