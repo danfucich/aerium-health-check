@@ -78,36 +78,26 @@ function analyzeColor() {
     const xEnd = xStart + Math.floor(canvas.width * 0.32);
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
-    let colorResults = [];
-    for (let i = 0; i < 13; i++) {  // Sample 13 random points instead of 3
+    let statusCounts = {
+        "Warning! Culture may be stressed.": 0,
+        "Culture crash? White/cloudy detected.": 0
+    };
+
+    // Sample 13 random points
+    for (let i = 0; i < 13; i++) {
         let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
-        colorResults.push([pixel[0], pixel[1], pixel[2]]);
-    }
 
-    // Determine status based on the most common detected category
-    let statusCounts = { 
-        "Time for a new refill!": 0,
-        "Healthy!": 0,
-        "Warning! Culture may be struggling.": 0,
-        "Culture crashed! White/cloudy detected.": 0
-    };
-
-    for (let color of colorResults) {
-        if (isWithinRange(color, { min: [0, 50, 0], max: [30, 120, 30] })) {
-            statusCounts["Time for a new refill!"]++;
-        } else if (isWithinRange(color, { min: [30, 80, 30], max: [100, 255, 100] })) {
-            statusCounts["Healthy!"]++;
-        } else if (isWithinRange(color, { min: [150, 150, 0], max: [255, 255, 100] })) {
+        if (isWithinRange(pixel, { min: [150, 150, 0], max: [255, 255, 100] })) {
             statusCounts["Warning! Culture may be stressed."]++;
-        } else if (isWithinRange(color, { min: [200, 200, 200], max: [255, 255, 255] })) {
+        } else if (isWithinRange(pixel, { min: [200, 200, 200], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
         }
     }
 
-    // Select the most frequently detected status
-    let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
+    // Select the most frequently detected status (or default to "Healthy!")
+    let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b, "Healthy!");
 
     resultText.textContent = `Status: ${status}`;
 }
