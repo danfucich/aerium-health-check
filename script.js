@@ -2,6 +2,7 @@ const video = document.getElementById("camera");
 const captureButton = document.getElementById("capture");
 const resultText = document.getElementById("result");
 
+// Function to request camera access
 function requestCameraAccess() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
         .then(stream => {
@@ -16,7 +17,7 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
-// Function to analyze multiple pixels from video
+// Function to analyze colors from the video feed
 function analyzeColor() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -25,62 +26,48 @@ function analyzeColor() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+    // Define the overlay region (centered rectangle)
+    // Define the overlay region (7.5:4 aspect ratio)
     const xStart = Math.floor(canvas.width * 0.34);
     const yStart = Math.floor(canvas.height * 0.20);
     const xEnd = xStart + Math.floor(canvas.width * 0.32);
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
-    let colors = [];
+    let colorResults = [];
+    for (let i = 0; i < 3; i++) {
+        let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
+        let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
+        let pixel = ctx.getImageData(x, y, 1, 1).data;
+        colorResults.push([pixel[0], pixel[1], pixel[2]]);
+    }
 
-    // Use a 4x4 grid (16 sample points)
-    const gridSize = 4;
-    for (let i = 0; i < gridSize; i++) {
-        for (let j = 0; j < gridSize; j++) {
-            let x = xStart + Math.floor((xEnd - xStart) * (i / (gridSize - 1)));
-            let y = yStart + Math.floor((yEnd - yStart) * (j / (gridSize - 1)));
-            let pixel = ctx.getImageData(x, y, 1, 1).data;
-            colors.push([pixel[0], pixel[1], pixel[2]]);
+    // Determine status based on color
+    let status = "Unknown";
+    for (let color of colorResults) {
+        if (isWithinRange(color, { min: [0, 50, 0], max: [30, 120, 30] })) {
+            status = "Time for a new refill!";
+            break;
+        } else if (isWithinRange(color, { min: [30, 80, 30], max: [100, 255, 100] })) {
+            status = "Healthy!";
+        } else if (isWithinRange(color, { min: [150, 150, 0], max: [255, 255, 100] })) {
+            status = "Warning! Culture may be struggling.";
+        } else if (isWithinRange(color, { min: [200, 200, 200], max: [255, 255, 255] })) {
+            status = "Culture crashed! White/cloudy detected.";
+            break;
         }
     }
 
-    // Compute average RGB values
-    let avgRGB = colors.reduce(
-        (acc, color) => {
-            acc[0] += color[0];
-            acc[1] += color[1];
-            acc[2] += color[2];
-            return acc;
-        },
-        [0, 0, 0]
-    ).map(val => val / colors.length);
-
-    let status = detectSpirulinaHealth(avgRGB);
     resultText.textContent = `Status: ${status}`;
-}
-
-// **New Function: Normalize Green Ratio**
-function greenRatio(r, g, b) {
-    let total = r + g + b;
-    return total === 0 ? 0 : g / total; // Avoid division by zero
-}
-
-// **Improved Spirulina Health Detection**
-function detectSpirulinaHealth(rgb) {
-    let [r, g, b] = rgb;
-    let gRatio = greenRatio(r, g, b); // Get how green-dominant the sample is
-
-    if (gRatio > 0.45 && g > 80) {
-        return "Healthy!"; // Bright green, strong culture
-    } else if (gRatio > 0.35 && g > 60) {
-        return "Warning! Culture may be struggling."; // Less green, more yellow
-    } else if (r > 180 && g > 180 && b > 180) {
-        return "Culture crashed! White/cloudy detected."; // High brightness = dead
-    } else if (gRatio < 0.3) {
-        return "Time for a new refill!"; // Dark or brownish culture
-    } else {
-        return "Unknown Status";
-    }
 }
 
 // Attach event listener to button
 captureButton.addEventListener("click", analyzeColor);
+
+// Function to check if color is within range
+function isWithinRange(color, range) {
+    return (
+        color[0] >= range.min[0] && color[0] <= range.max[0] &&
+        color[1] >= range.min[1] && color[1] <= range.max[1] &&
+        color[2] >= range.min[2] && color[2] <= range.max[2]
+    );
+}
