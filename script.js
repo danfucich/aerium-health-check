@@ -1,7 +1,29 @@
 const video = document.getElementById("camera");
 const captureButton = document.getElementById("capture");
 const resultText = document.getElementById("result");
+const loadingContainer = document.createElement("div");
+const loadingBar = document.createElement("div");
 
+// Style Loading Bar
+loadingContainer.style.width = "90%";
+loadingContainer.style.maxWidth = "600px";
+loadingContainer.style.height = "10px";
+loadingContainer.style.backgroundColor = "#ddd";
+loadingContainer.style.borderRadius = "5px";
+loadingContainer.style.margin = "10px auto";
+loadingContainer.style.display = "none"; // Hidden initially
+loadingContainer.style.overflow = "hidden";
+loadingContainer.style.position = "relative";
+
+loadingBar.style.width = "0%";
+loadingBar.style.height = "100%";
+loadingBar.style.backgroundColor = "#27ae60";
+loadingBar.style.transition = "width 0.1s linear";
+
+loadingContainer.appendChild(loadingBar);
+document.body.insertBefore(loadingContainer, resultText);
+
+// Function to request camera access
 function requestCameraAccess() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
         .then(stream => {
@@ -15,6 +37,27 @@ function requestCameraAccess() {
 
 // Request camera access on page load
 requestCameraAccess();
+
+// Function to start the loading animation
+function startLoading(callback) {
+    let duration = Math.random() * (4000 - 500) + 500; // Random time between 0.5s and 4s
+    loadingContainer.style.display = "block";
+    loadingBar.style.width = "0%";
+
+    let interval = setInterval(() => {
+        let progress = parseInt(loadingBar.style.width) || 0;
+        if (progress < 100) {
+            loadingBar.style.width = (progress + 5) + "%";
+        } else {
+            clearInterval(interval);
+        }
+    }, duration / 20);
+
+    setTimeout(() => {
+        loadingContainer.style.display = "none"; // Hide loading bar
+        callback(); // Call the actual analysis function
+    }, duration);
+}
 
 // Function to analyze multiple pixels from video
 function analyzeColor() {
@@ -76,4 +119,4 @@ function detectSpirulinaHealth(rgb) {
 }
 
 // Attach event listener to button
-captureButton.addEventListener("click", analyzeColor);
+captureButton.addEventListener("click", () => startLoading(analyzeColor));
