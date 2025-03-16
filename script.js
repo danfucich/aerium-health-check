@@ -89,9 +89,9 @@ function analyzeColor() {
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
 
-        if (isWithinRange(pixel, { min: [150, 150, 0], max: [255, 255, 100] })) {
+        if (isWithinRange(pixel, { min: [170, 170, 0], max: [255, 255, 80] })) {
             statusCounts["Warning! Culture may be stressed."]++;
-        } else if (isWithinRange(pixel, { min: [200, 200, 200], max: [255, 255, 255] })) {
+        } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
         }
     }
