@@ -79,6 +79,8 @@ function analyzeColor() {
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
     let statusCounts = {
+        "Time for a new refill!": 0,
+        "Healthy!": 0,
         "Warning! Culture may be stressed.": 0,
         "Culture crash? White/cloudy detected.": 0
     };
@@ -89,15 +91,19 @@ function analyzeColor() {
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
 
-        if (isWithinRange(pixel, { min: [170, 170, 0], max: [255, 255, 80] })) {
+        if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
+            statusCounts["Time for a new refill!"]++;
+        } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
+            statusCounts["Healthy!"]++;
+        } else if (isWithinRange(pixel, { min: [170, 170, 0], max: [255, 255, 80] })) {
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
         }
     }
 
-    // Select the most frequently detected status (or default to "Healthy!")
-    let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b, "Healthy!");
+    // Select the most frequently detected status
+    let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
 
     resultText.textContent = `Status: ${status}`;
 }
