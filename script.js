@@ -2,22 +2,83 @@ const video = document.getElementById("camera");
 const captureButton = document.getElementById("capture");
 const resultText = document.getElementById("result");
 
-// Define trained RGB thresholds with adjusted ranges
+// Create loading bar elements
+const loadingContainer = document.createElement("div");
+const loadingBar = document.createElement("div");
+
+// Style Loading Bar
+loadingContainer.style.width = "90%";
+loadingContainer.style.maxWidth = "600px";
+loadingContainer.style.height = "10px";
+loadingContainer.style.backgroundColor = "#ddd";
+loadingContainer.style.borderRadius = "5px";
+loadingContainer.style.margin = "10px auto";
+loadingContainer.style.display = "none"; // Hidden initially
+loadingContainer.style.overflow = "hidden";
+loadingContainer.style.position = "relative";
+
+loadingBar.style.width = "0%";
+loadingBar.style.height = "100%";
+loadingBar.style.backgroundColor = "#27ae60";
+loadingBar.style.transition = "width 0.1s linear";
+
+loadingContainer.appendChild(loadingBar);
+document.body.insertBefore(loadingContainer, resultText);
+
+// Function to request camera access
+function requestCameraAccess() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            console.error("Camera access denied:", err);
+            resultText.textContent = "Error: Unable to access camera. Please allow permissions.";
+        });
+}
+
+// Request camera access on page load
+requestCameraAccess();
+
+// Define RGB thresholds (Basic Method)
 const colorThresholds = {
     "White/Cloudy (Crash)": { min: [220, 220, 220], max: [255, 255, 255] },
-    "Healthy Green": { min: [20, 150, 40], max: [110, 255, 180] },
+    "Healthy Green": { min: [30, 150, 40], max: [110, 255, 180] },
     "Yellow-Stressed": { min: [100, 200, 0], max: [255, 255, 120] },
     "Mature Green": { min: [10, 140, 50], max: [70, 190, 100] },
 };
 
-// Define messages for each category
-const statusMessages = {
-    "White/Cloudy (Crash)": "⚠️ Culture crash detected! White/cloudy appearance indicates a dead or contaminated culture.",
-    "Healthy Green": "✅ Your spirulina is healthy! Keep maintaining the current conditions.",
-    "Yellow-Stressed": "⚠️ Warning! Your culture may be stressed. Check nutrients, light, and temperature levels.",
-    "Mature Green": "🔄 Time for a refill! The culture is mature and should be refreshed soon.",
-    "Unknown Status": "❓ Unidentified color. Ensure proper lighting and check for contamination.",
+// Output messages
+const outputMessages = {
+    "White/Cloudy (Crash)": "⚠️ Possible culture crash! White/cloudy detected.",
+    "Healthy Green": "✅ Culture is healthy and thriving!",
+    "Yellow-Stressed": "⚠️ Warning! Culture may be stressed.",
+    "Mature Green": "🔄 Mature culture. Time for a change soon.",
+    "Unknown Status": "❓ Unable to determine culture status."
 };
+
+// Function to start the loading animation
+function startLoading(callback) {
+    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
+    loadingContainer.style.display = "block";
+    loadingBar.style.width = "0%";
+    captureButton.disabled = true; // Disable button during processing
+
+    let interval = setInterval(() => {
+        let progress = parseInt(loadingBar.style.width) || 0;
+        if (progress < 100) {
+            loadingBar.style.width = (progress + 10) + "%";
+        } else {
+            clearInterval(interval);
+        }
+    }, duration / 10);
+
+    setTimeout(() => {
+        loadingContainer.style.display = "none"; // Hide loading bar
+        captureButton.disabled = false; // Re-enable button
+        callback(); // Call the actual analysis function
+    }, duration);
+}
 
 // Function to check if a color is within a given threshold
 function isWithinRange(color, range) {
@@ -28,7 +89,7 @@ function isWithinRange(color, range) {
     );
 }
 
-// Function to analyze colors from the video feed
+// Function to analyze a single random pixel from the video feed (Basic RGB Detection)
 function analyzeColor() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -37,50 +98,23 @@ function analyzeColor() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Define the overlay region (7.5:4 aspect ratio)
-    const xStart = Math.floor(canvas.width * 0.34);
-    const yStart = Math.floor(canvas.height * 0.20);
-    const xEnd = xStart + Math.floor(canvas.width * 0.32);
-    const yEnd = yStart + Math.floor(canvas.height * 0.60);
-
-    let colors = [];
-
-    // Use a 4x4 grid (16 points)
-    const gridSize = 4;
-    for (let i = 0; i < gridSize; i++) {
-        for (let j = 0; j < gridSize; j++) {
-            let x = xStart + Math.floor((xEnd - xStart) * (i / (gridSize - 1)));
-            let y = yStart + Math.floor((yEnd - yStart) * (j / (gridSize - 1)));
-            let pixel = ctx.getImageData(x, y, 1, 1).data;
-            colors.push([pixel[0], pixel[1], pixel[2]]);
-        }
-    }
-
-    // Compute median RGB values to avoid outliers
-    let medianRGB = getMedianRGB(colors);
-
-    // **Updated Classification Logic**
-    let status = "Unknown Status"; // Default fallback
+    // Pick a single random pixel from the center area
+    const x = Math.floor(canvas.width * 0.5);
+    const y = Math.floor(canvas.height * 0.5);
+    const pixel = ctx.getImageData(x, y, 1, 1).data;
+    
+    // Determine spirulina health based on thresholds
+    let status = "Unknown Status";
     for (const [category, range] of Object.entries(colorThresholds)) {
-        if (isWithinRange(medianRGB, range)) {
+        if (isWithinRange(pixel, range)) {
             status = category;
             break;
         }
     }
 
-    // **Display Message Based on Detection**
-    resultText.textContent = `Status: ${statusMessages[status]}`;
+    // Display the corresponding message
+    resultText.textContent = outputMessages[status];
 }
 
-// Function to get median RGB value (more stable than average)
-function getMedianRGB(colors) {
-    let sortedR = colors.map(c => c[0]).sort((a, b) => a - b);
-    let sortedG = colors.map(c => c[1]).sort((a, b) => a - b);
-    let sortedB = colors.map(c => c[2]).sort((a, b) => a - b);
-
-    let mid = Math.floor(colors.length / 2);
-    return [sortedR[mid], sortedG[mid], sortedB[mid]];
-}
-
-// Attach event listener to button
-captureButton.addEventListener("click", analyzeColor);
+// Attach event listener to button with loading animation
+captureButton.addEventListener("click", () => startLoading(analyzeColor));
