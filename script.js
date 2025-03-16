@@ -40,9 +40,26 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
+// Define trained RGB thresholds
+const colorThresholds = {
+    "White/Cloudy (Crash)": { min: [230, 230, 230], max: [255, 255, 255] },
+    "Healthy Green": { min: [30, 175, 54], max: [100, 249, 179] },
+    "Yellow-Stressed": { min: [45, 226, 0], max: [245, 247, 100] },
+    "Mature Green": { min: [12, 156, 54], max: [50, 169, 80] },
+};
+
+// Function to check if a color is within a given threshold
+function isWithinRange(color, range) {
+    return (
+        color[0] >= range.min[0] && color[0] <= range.max[0] &&
+        color[1] >= range.min[1] && color[1] <= range.max[1] &&
+        color[2] >= range.min[2] && color[2] <= range.max[2]
+    );
+}
+
 // Function to start the loading animation
 function startLoading(callback) {
-    let duration = Math.random() * (4000 - 500) + 500; // Random time between 0.5s and 4s
+    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
     loadingContainer.style.display = "block";
     loadingBar.style.width = "0%";
     captureButton.disabled = true; // Disable button during processing
@@ -50,11 +67,11 @@ function startLoading(callback) {
     let interval = setInterval(() => {
         let progress = parseInt(loadingBar.style.width) || 0;
         if (progress < 100) {
-            loadingBar.style.width = (progress + 5) + "%";
+            loadingBar.style.width = (progress + 10) + "%";
         } else {
             clearInterval(interval);
         }
-    }, duration / 20);
+    }, duration / 10);
 
     setTimeout(() => {
         loadingContainer.style.display = "none"; // Hide loading bar
@@ -80,7 +97,7 @@ function analyzeColor() {
 
     let colors = [];
 
-    // Use a 4x4 grid (16 points) instead of just 3 random points
+    // Use a 4x4 grid (16 points)
     const gridSize = 4;
     for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
@@ -94,8 +111,15 @@ function analyzeColor() {
     // Compute median RGB values to avoid outliers
     let medianRGB = getMedianRGB(colors);
 
-    // Determine spirulina health based on improved green detection
-    let status = detectSpirulinaHealth(medianRGB);
+    // Determine spirulina health based on thresholds
+    let status = "Unknown Status";
+    for (const [category, range] of Object.entries(colorThresholds)) {
+        if (isWithinRange(medianRGB, range)) {
+            status = category;
+            break;
+        }
+    }
+
     resultText.textContent = `Status: ${status}`;
 }
 
@@ -109,23 +133,6 @@ function getMedianRGB(colors) {
     return [sortedR[mid], sortedG[mid], sortedB[mid]];
 }
 
-// Function to determine spirulina health based on improved RGB sensing
-function detectSpirulinaHealth(rgb) {
-    let [r, g, b] = rgb;
-    let greenRatio = g / (r + g + b); // Normalize green intensity
-
-    if (greenRatio > 0.45 && g > 80) {
-        return "Healthy!"; // Bright green, strong culture
-    } else if (greenRatio > 0.35 && g > 60) {
-        return "Warning! Culture may be stressed"; // Less green, more yellowish
-    } else if (r > 180 && g > 180 && b > 180) {
-        return "Culture crash? White/cloudy detected"; // High brightness = dead culture
-    } else if (greenRatio < 0.3) {
-        return "Time for a new refill!"; // Dark or brownish culture
-    } else {
-        return "Unknown Status";
-    }
-}
-
 // Attach event listener to button with loading animation
 captureButton.addEventListener("click", () => startLoading(analyzeColor));
+
