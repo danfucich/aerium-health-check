@@ -19,7 +19,7 @@ loadingContainer.style.position = "relative";
 
 loadingBar.style.width = "0%";
 loadingBar.style.height = "100%";
-loadingBar.style.backgroundColor = "#72ae60";
+loadingBar.style.backgroundColor = "#27ae60";
 loadingBar.style.transition = "width 0.1s linear";
 
 loadingContainer.appendChild(loadingBar);
@@ -40,26 +40,9 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
-// Define RGB thresholds (Basic Method)
-const colorThresholds = {
-    "White/Cloudy (Crash)": { min: [220, 220, 220], max: [255, 255, 255] },
-    "Healthy Green": { min: [30, 150, 40], max: [110, 255, 180] },
-    "Yellow-Stressed": { min: [100, 200, 0], max: [255, 255, 120] },
-    "Mature Green": { min: [10, 140, 50], max: [70, 190, 100] },
-};
-
-// Output messages
-const outputMessages = {
-    "White/Cloudy (Crash)": "⚠️ Possible culture crash! White/cloudy detected.",
-    "Healthy Green": "✅ Culture is healthy and thriving!",
-    "Yellow-Stressed": "⚠️ Warning! Culture may be stressed.",
-    "Mature Green": "🔄 Mature culture. Time for a change soon.",
-    "Unknown Status": "❓ Unable to determine culture status."
-};
-
 // Function to start the loading animation
 function startLoading(callback) {
-    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
+    let duration = Math.random() * (4000 - 500) + 500; // Random time between 0.5s and 4s
     loadingContainer.style.display = "block";
     loadingBar.style.width = "0%";
     captureButton.disabled = true; // Disable button during processing
@@ -67,11 +50,11 @@ function startLoading(callback) {
     let interval = setInterval(() => {
         let progress = parseInt(loadingBar.style.width) || 0;
         if (progress < 100) {
-            loadingBar.style.width = (progress + 10) + "%";
+            loadingBar.style.width = (progress + 5) + "%";
         } else {
             clearInterval(interval);
         }
-    }, duration / 10);
+    }, duration / 20);
 
     setTimeout(() => {
         loadingContainer.style.display = "none"; // Hide loading bar
@@ -80,16 +63,7 @@ function startLoading(callback) {
     }, duration);
 }
 
-// Function to check if a color is within a given threshold
-function isWithinRange(color, range) {
-    return (
-        color[0] >= range.min[0] && color[0] <= range.max[0] &&
-        color[1] >= range.min[1] && color[1] <= range.max[1] &&
-        color[2] >= range.min[2] && color[2] <= range.max[2]
-    );
-}
-
-// Function to analyze a single random pixel from the video feed (Basic RGB Detection)
+// Function to analyze colors from the video feed
 function analyzeColor() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -98,22 +72,59 @@ function analyzeColor() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Pick a single random pixel from the center area
-    const x = Math.floor(canvas.width * 0.5);
-    const y = Math.floor(canvas.height * 0.5);
-    const pixel = ctx.getImageData(x, y, 1, 1).data;
-    
-    // Determine spirulina health based on thresholds
-    let status = "Unknown Status";
-    for (const [category, range] of Object.entries(colorThresholds)) {
-        if (isWithinRange(pixel, range)) {
-            status = category;
-            break;
+    // Define the overlay region (7.5:4 aspect ratio)
+    const xStart = Math.floor(canvas.width * 0.34);
+    const yStart = Math.floor(canvas.height * 0.20);
+    const xEnd = xStart + Math.floor(canvas.width * 0.32);
+    const yEnd = yStart + Math.floor(canvas.height * 0.60);
+
+    let colors = [];
+
+    // Use a 4x4 grid (16 points) instead of just 3 random points
+    const gridSize = 4;
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            let x = xStart + Math.floor((xEnd - xStart) * (i / (gridSize - 1)));
+            let y = yStart + Math.floor((yEnd - yStart) * (j / (gridSize - 1)));
+            let pixel = ctx.getImageData(x, y, 1, 1).data;
+            colors.push([pixel[0], pixel[1], pixel[2]]);
         }
     }
 
-    // Display the corresponding message
-    resultText.textContent = outputMessages[status];
+    // Compute median RGB values to avoid outliers
+    let medianRGB = getMedianRGB(colors);
+
+    // Determine spirulina health based on improved green detection
+    let status = detectSpirulinaHealth(medianRGB);
+    resultText.textContent = `Status: ${status}`;
+}
+
+// Function to get median RGB value (more stable than average)
+function getMedianRGB(colors) {
+    let sortedR = colors.map(c => c[0]).sort((a, b) => a - b);
+    let sortedG = colors.map(c => c[1]).sort((a, b) => a - b);
+    let sortedB = colors.map(c => c[2]).sort((a, b) => a - b);
+
+    let mid = Math.floor(colors.length / 2);
+    return [sortedR[mid], sortedG[mid], sortedB[mid]];
+}
+
+// Function to determine spirulina health based on improved RGB sensing
+function detectSpirulinaHealth(rgb) {
+    let [r, g, b] = rgb;
+    let greenRatio = g / (r + g + b); // Normalize green intensity
+
+    if (greenRatio > 0.45 && g > 80) {
+        return "Healthy!"; // Bright green, strong culture
+    } else if (greenRatio > 0.35 && g > 60) {
+        return "Warning! Culture may be stressed"; // Less green, more yellowish
+    } else if (r > 180 && g > 180 && b > 180) {
+        return "Culture crash? White/cloudy detected"; // High brightness = dead culture
+    } else if (greenRatio < 0.3) {
+        return "Time for a new refill!"; // Dark or brownish culture
+    } else {
+        return "Unknown Status";
+    }
 }
 
 // Attach event listener to button with loading animation
