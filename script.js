@@ -16,26 +16,6 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
-// Function to convert RGB to HSV
-function rgbToHsv(r, g, b) {
-    r /= 255, g /= 255, b /= 255;
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, v = max;
-    let d = max - min;
-    s = max === 0 ? 0 : d / max;
-    if (max === min) {
-        h = 0; // No hue
-    } else {
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-    return [h * 360, s * 100, v * 100]; // Return HSV with Hue in degrees
-}
-
 // Function to analyze multiple pixels from video
 function analyzeColor() {
     const canvas = document.createElement("canvas");
@@ -52,39 +32,44 @@ function analyzeColor() {
 
     let colors = [];
 
-    // Use a 4x4 grid (16 sample points) for better accuracy
+    // Use a 4x4 grid (16 sample points)
     const gridSize = 4;
     for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
             let x = xStart + Math.floor((xEnd - xStart) * (i / (gridSize - 1)));
             let y = yStart + Math.floor((yEnd - yStart) * (j / (gridSize - 1)));
             let pixel = ctx.getImageData(x, y, 1, 1).data;
-            let hsv = rgbToHsv(pixel[0], pixel[1], pixel[2]);
-            colors.push(hsv);
+            colors.push([pixel[0], pixel[1], pixel[2]]);
         }
     }
 
-    // Sort by Hue and take the median color to avoid outliers
-    colors.sort((a, b) => a[0] - b[0]);
-    let medianIndex = Math.floor(colors.length / 2);
-    let medianColor = colors[medianIndex];
+    // Compute average RGB values
+    let avgRGB = colors.reduce(
+        (acc, color) => {
+            acc[0] += color[0];
+            acc[1] += color[1];
+            acc[2] += color[2];
+            return acc;
+        },
+        [0, 0, 0]
+    ).map(val => val / colors.length);
 
-    let status = detectSpirulinaHealth(medianColor);
+    let status = detectSpirulinaHealth(avgRGB);
     resultText.textContent = `Status: ${status}`;
 }
 
-// Function to determine spirulina health condition based on HSV
-function detectSpirulinaHealth(hsv) {
-    let [h, s, v] = hsv;
+// Function to determine spirulina health condition based on RGB
+function detectSpirulinaHealth(rgb) {
+    let [r, g, b] = rgb;
 
-    if (h >= 85 && h <= 150 && s >= 50) {
-        return "Healthy!"; // Vibrant green
-    } else if (h >= 60 && h < 85 && s >= 40) {
-        return "Warning! Culture may be stressed."; // Yellow-green
-    } else if (h < 60 || v > 80) {
-        return "Culture crash? White/cloudy detected."; // High brightness means dead culture
-    } else if (h > 150) {
-        return "Time for a new refill!"; // Darker forest green (old spirulina)
+    if (g > r && g > b && g > 100) {
+        return "Healthy!"; // Strong green
+    } else if (g > r && g > b && g >= 60 && g <= 100) {
+        return "Warning! Culture may be struggling."; // Yellow-green, losing vibrancy
+    } else if (r >= 200 && g >= 200 && b >= 200) {
+        return "Culture crashed! White/cloudy detected."; // Dead culture
+    } else if (g < r || g < b) {
+        return "Time for a new refill!"; // Older culture, turning brownish or dark
     } else {
         return "Unknown Status";
     }
