@@ -19,7 +19,7 @@ loadingContainer.style.position = "relative";
 
 loadingBar.style.width = "0%";
 loadingBar.style.height = "100%";
-loadingBar.style.backgroundColor = "#27ae60";
+loadingBar.style.backgroundColor = "#72ae60";
 loadingBar.style.transition = "width 0.1s linear";
 
 loadingContainer.appendChild(loadingBar);
