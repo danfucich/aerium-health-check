@@ -27,10 +27,11 @@ function analyzeColor() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Define the overlay region (centered rectangle)
-    const xStart = Math.floor(canvas.width * 0.25);
-    const yStart = Math.floor(canvas.height * 0.35);
-    const xEnd = xStart + Math.floor(canvas.width * 0.50);
-    const yEnd = yStart + Math.floor(canvas.height * 0.30);
+    // Define the overlay region (7.5:4 aspect ratio)
+    const xStart = Math.floor(canvas.width * 0.34);
+    const yStart = Math.floor(canvas.height * 0.20);
+    const xEnd = xStart + Math.floor(canvas.width * 0.32);
+    const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
     let colorResults = [];
     for (let i = 0; i < 3; i++) {
