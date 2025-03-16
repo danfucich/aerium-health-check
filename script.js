@@ -100,9 +100,9 @@ function analyzeColor() {
         } else if (isWithinRange(color, { min: [30, 80, 30], max: [100, 255, 100] })) {
             statusCounts["Healthy!"]++;
         } else if (isWithinRange(color, { min: [150, 150, 0], max: [255, 255, 100] })) {
-            statusCounts["Warning! Culture may be struggling."]++;
+            statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(color, { min: [200, 200, 200], max: [255, 255, 255] })) {
-            statusCounts["Culture crashed! White/cloudy detected."]++;
+            statusCounts["Culture crash? White/cloudy detected."]++;
         }
     }
 
