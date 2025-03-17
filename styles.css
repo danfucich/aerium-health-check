@@ -11,14 +11,17 @@ body {
     color: #2c3e50; /* Dark gray for readability */
 }
 
-/* Branding Styles */
+/* Branding Styles - Keep Logo Fixed at Top */
 #branding {
     text-align: center;
-    margin-bottom: 10px;
-    width: 90%; /* Matches other elements' width */
-    max-width: 600px; /* Ensures consistency */
-    margin-left: auto;
-    margin-right: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f8f9fa; /* Matches body background */
+    padding: 10px 0;
+    z-index: 1000; /* Ensures it stays above other elements */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for separation */
 }
 
 #brand-logo {
@@ -26,9 +29,13 @@ body {
     max-width: 180px; /* Adjust as needed */
     height: auto;
     display: block;
+    margin: 0 auto;
 }
 
-
+/* Ensure page content does not overlap with fixed branding */
+body {
+    padding-top: 80px; /* Adjust this if the branding overlaps the content */
+}
 
 /* Video Container */
 #video-container {
@@ -57,17 +64,18 @@ video {
     border-radius: 8px;
     pointer-events: none; /* Ensures it does not block clicks */
 }
-* Center and Enlarge Button */
+
+/* Center and Enlarge Button */
 #capture {
     background-color: #27ae60; /* Green */
     color: white;
-    font-size: 20px; /* Larger text */
+    font-size: 24px; /* Larger text */
     font-weight: bold;
-    padding: 16px;
-    width: 100%; /* Full-width button */
-    max-width: 600px; /* Prevents it from being too large on big screens */
+    padding: 20px;
+    width: 100vw; /* Full screen width */
+    max-width: none; /* Allow it to span fully */
     border: none;
-    border-radius: 8px;
+    border-radius: 0px; /* Remove rounded corners for a modern look */
     cursor: pointer;
     transition: background 0.3s ease;
     display: block;
