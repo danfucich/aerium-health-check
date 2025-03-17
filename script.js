@@ -95,7 +95,7 @@ function analyzeColor() {
             statusCounts["Time for a new refill!"]++;
         } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
-        } else if (isWithinRange(pixel, { min: [170, 170, 0], max: [255, 255, 80] })) {
+        } else if (isWithinRange(pixel, { min: [160, 160, 0], max: [255, 255, 100] })) {
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
