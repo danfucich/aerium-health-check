@@ -13,15 +13,8 @@ body {
 /* Branding Styles - Center the logo */
 #branding {
     text-align: center;
-    max-width: 170px;
+    max-width: 8000px;
     margin-bottom: 15px;
-
-}
-#brand-logo {
-    max-width: 8000px; /* Keeps the logo at a controlled size */
-    height: auto;
-    display: block;
-    margin: 0 auto;
 }
 
 /* Video Container */
