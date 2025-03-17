@@ -57,18 +57,21 @@ video {
     border-radius: 8px;
     pointer-events: none; /* Ensures it does not block clicks */
 }
-
-/* Improve button styling */
-button {
-    margin-top: 10px;
-    padding: 12px 16px;
-    font-size: 18px;
+* Center and Enlarge Button */
+#capture {
+    background-color: #27ae60; /* Green */
+    color: white;
+    font-size: 20px; /* Larger text */
     font-weight: bold;
+    padding: 16px;
+    width: 100%; /* Full-width button */
+    max-width: 600px; /* Prevents it from being too large on big screens */
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
-    font-family: 'Poppins', sans-serif; /* Apply Poppins to buttons */
+    display: block;
+    margin: 15px auto; /* Centers it */
 }
 
 /* Green Analyze button */
