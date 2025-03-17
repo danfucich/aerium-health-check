@@ -1,114 +1,33 @@
-const video = document.getElementById("camera");
-const captureButton = document.getElementById("capture");
-const resultText = document.getElementById("result");
-
-// Create loading bar elements
-const loadingContainer = document.createElement("div");
-const loadingBar = document.createElement("div");
-
-// Style Loading Bar
-loadingContainer.style.width = "90%";
-loadingContainer.style.maxWidth = "600px";
-loadingContainer.style.height = "10px";
-loadingContainer.style.backgroundColor = "#ddd";
-loadingContainer.style.borderRadius = "5px";
-loadingContainer.style.margin = "10px auto";
-loadingContainer.style.display = "none"; // Hidden initially
-loadingContainer.style.overflow = "hidden";
-loadingContainer.style.position = "relative";
-
-loadingBar.style.width = "0%";
-loadingBar.style.height = "100%";
-loadingBar.style.backgroundColor = "#27ae60"; // Green loading bar
-loadingBar.style.transition = "width 0.1s linear";
-
-loadingContainer.appendChild(loadingBar);
-document.body.insertBefore(loadingContainer, resultText);
-
-// Function to request camera access
-function requestCameraAccess() {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then(stream => {
-            video.srcObject = stream;
-        })
-        .catch(err => {
-            console.error("Camera access denied:", err);
-            resultText.textContent = "Error: Unable to access camera. Please allow permissions.";
-        });
+/* Center and Enlarge Button */
+#capture {
+    background-color: #27ae60; /* Green */
+    color: white;
+    font-size: 20px; /* Larger text */
+    font-weight: bold;
+    padding: 16px;
+    width: 100%; /* Full-width button */
+    max-width: 600px; /* Prevents it from being too large on big screens */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    display: block;
+    margin: 15px auto; /* Centers it */
 }
 
-// Request camera access on page load
-requestCameraAccess();
-
-// Function to start the loading animation
-function startLoading(callback) {
-    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
-    loadingContainer.style.display = "block";
-    loadingBar.style.width = "0%";
-    captureButton.disabled = true; // Disable button during processing
-
-    let interval = setInterval(() => {
-        let progress = parseInt(loadingBar.style.width) || 0;
-        if (progress < 100) {
-            loadingBar.style.width = (progress + 20) + "%"; // Faster progress since delay is short
-        } else {
-            clearInterval(interval);
-        }
-    }, duration / 5);
-
-    setTimeout(() => {
-        loadingContainer.style.display = "none"; // Hide loading bar
-        captureButton.disabled = false; // Re-enable button
-        callback(); // Call the actual analysis function
-    }, duration);
+/* Button Hover Effect */
+#capture:hover {
+    background-color: #219653;
 }
 
-// Function to analyze colors from the video feed
-function analyzeColor() {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Define the overlay region (7.5:4 aspect ratio)
-    const xStart = Math.floor(canvas.width * 0.34);
-    const yStart = Math.floor(canvas.height * 0.20);
-    const xEnd = xStart + Math.floor(canvas.width * 0.32);
-    const yEnd = yStart + Math.floor(canvas.height * 0.60);
-
-    let statusCounts = {
-        "Time for a new refill!": 0,
-        "Healthy!": 0,
-        "Warning! Culture may be stressed.": 0,
-        "Culture crash? White/cloudy detected.": 0
-    };
-
-    // Sample 13 random points
-    for (let i = 0; i < 13; i++) {
-        let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
-        let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
-        let pixel = ctx.getImageData(x, y, 1, 1).data;
-        let r = pixel[0], g = pixel[1], b = pixel[2];
-        let brightness = (r + g + b) / 3;
-        let greenRatio = g / (r + g + b + 1); // Avoid division by zero
-
-        if (brightness > 230 && Math.abs(r - g) < 10 && Math.abs(g - b) < 10) {
-            statusCounts["Culture crash? White/cloudy detected."]++;
-        } else if (greenRatio > 0.45 && g > 120) {
-            statusCounts["Healthy!"]++;
-        } else if (greenRatio > 0.35 && g > 80) {
-            statusCounts["Warning! Culture may be stressed."]++;
-        } else {
-            statusCounts["Time for a new refill!"]++;
-        }
-    }
-
-    // Select the most frequently detected status
-    let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-    resultText.textContent = `Status: ${status}`;
+/* Move Status Above Camera */
+#result {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px; /* Adds spacing before the video feed */
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #ecf0f1; /* Light gray */
+    display: inline-block;
 }
-
-// Attach event listener to button with loading animation
-captureButton.addEventListener("click", () => startLoading(analyzeColor));
