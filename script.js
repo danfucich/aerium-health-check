@@ -96,9 +96,9 @@ function analyzeColor() {
 
         if (brightness > 230 && Math.abs(r - g) < 10 && Math.abs(g - b) < 10) {
             statusCounts["Culture crash? White/cloudy detected."]++;
-        } else if (greenRatio > 0.45 && g > 120) {
+        } else if (greenRatio > 0.40 && g > 140) {
             statusCounts["Healthy!"]++;
-        } else if (greenRatio > 0.35 && g > 80) {
+        } else if (greenRatio > 0.30 && g > 100) {
             statusCounts["Warning! Culture may be stressed."]++;
         } else {
             statusCounts["Time for a new refill!"]++;
