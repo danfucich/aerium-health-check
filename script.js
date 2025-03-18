@@ -82,14 +82,19 @@ function analyzeColor() {
         "Time for a new refill!": 0,
         "Healthy!": 0,
         "Warning! Culture may be stressed.": 0,
-        "Culture crash? White/cloudy detected.": 0
+        "Culture crash? White/cloudy detected.": 0,
+        "No aerium detected": 0
     };
+
+    let detectedColors = [];
 
     // Sample 13 random points
     for (let i = 0; i < 13; i++) {
         let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
+        let r = pixel[0], g = pixel[1], b = pixel[2];
+        detectedColors.push(`RGB(${r}, ${g}, ${b})`);
 
         if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
             statusCounts["Time for a new refill!"]++;
@@ -99,23 +104,24 @@ function analyzeColor() {
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
+        } else if ((r > 150 && g < 100 && b < 100) ||  // Red
+                   (b > 150 && r < 100 && g < 100) ||  // Blue
+                   (r > 100 && b > 100 && g < 100) ||  // Purple
+                   (r < 50 && g < 50 && b < 50)) {    // Black/Dark
+            statusCounts["No aerium detected"]++;
         }
+    }
+
+    // If at least 7 of 13 samples match non-aerium colors, override classification
+    if (statusCounts["No aerium detected"] >= 7) {
+        resultText.textContent = `Detected Colors: ${detectedColors.join(", ")}\nStatus: No aerium detected`;
+        return;
     }
 
     // Select the most frequently detected status
     let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-
     resultText.textContent = `Status: ${status}`;
 }
 
 // Attach event listener to button with loading animation
 captureButton.addEventListener("click", () => startLoading(analyzeColor));
-
-// Function to check if color is within range
-function isWithinRange(color, range) {
-    return (
-        color[0] >= range.min[0] && color[0] <= range.max[0] &&
-        color[1] >= range.min[1] && color[1] <= range.max[1] &&
-        color[2] >= range.min[2] && color[2] <= range.max[2]
-    );
-}
