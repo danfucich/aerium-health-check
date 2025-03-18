@@ -95,20 +95,18 @@ function analyzeColor() {
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
         let r = pixel[0], g = pixel[1], b = pixel[2];
-        detectedColors.push(classifyColor(r, g, b));
+        let colorName = classifyColor(r, g, b);
+        detectedColors.push(colorName);
 
         if (isWithinRange([r, g, b], { min: [0, 50, 0], max: [30, 140, 30] })) {
             statusCounts["Time for a new refill!"]++;
         } else if (isWithinRange([r, g, b], { min: [50, 100, 50], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
-        } else if (isWithinRange([r, g, b], { min: [160, 100, 0], max: [255, 180, 100] })) {
+        } else if (isWithinRange([r, g, b], { min: [160, 80, 0], max: [255, 200, 120] })) { // Expanded yellow to include orange
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange([r, g, b], { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
-        } else if ((r > 150 && g < 100 && b < 100) ||  // Red
-                   (b > 150 && r < 100 && g < 100) ||  // Blue
-                   (r > 100 && b > 100 && g < 100) ||  // Purple
-                   (r < 50 && g < 50 && b < 50)) {    // Black/Dark
+        } else {
             statusCounts["No aerium detected"]++;
         }
     }
@@ -125,15 +123,6 @@ Status: No aerium detected`;
     resultText.textContent = `Status: ${status}`;
 }
 
-// Function to check if color is within range
-function isWithinRange(color, range) {
-    return (
-        color[0] >= range.min[0] && color[0] <= range.max[0] &&
-        color[1] >= range.min[1] && color[1] <= range.max[1] &&
-        color[2] >= range.min[2] && color[2] <= range.max[2]
-    );
-}
-
 // Function to classify color to human-readable text
 function classifyColor(r, g, b) {
     if (r > 150 && g < 100 && b < 100) return "Red";
@@ -142,6 +131,7 @@ function classifyColor(r, g, b) {
     if (r < 50 && g < 50 && b < 50) return "Black";
     if (g > 150 && r < 100 && b < 100) return "Green";
     if (r > 150 && g > 150 && b < 100) return "Yellow";
+    if (r > 180 && g > 100 && b < 80) return "Orange";
     if (r > 200 && g > 200 && b > 200) return "White";
     return "Unknown";
 }
