@@ -97,13 +97,13 @@ function analyzeColor() {
         let r = pixel[0], g = pixel[1], b = pixel[2];
         detectedColors.push(`RGB(${r}, ${g}, ${b})`);
 
-        if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
+        if (isWithinRange([r, g, b], { min: [0, 50, 0], max: [30, 140, 30] })) {
             statusCounts["Time for a new refill!"]++;
-        } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
+        } else if (isWithinRange([r, g, b], { min: [50, 100, 50], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
-        } else if (isWithinRange(pixel, { min: [160, 160, 0], max: [255, 255, 100] })) {
+        } else if (isWithinRange([r, g, b], { min: [160, 160, 0], max: [255, 255, 100] })) {
             statusCounts["Warning! Culture may be stressed."]++;
-        } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
+        } else if (isWithinRange([r, g, b], { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
         } else if ((r > 150 && g < 100 && b < 100) ||  // Red
                    (b > 150 && r < 100 && g < 100) ||  // Blue
@@ -122,6 +122,15 @@ function analyzeColor() {
     // Select the most frequently detected status
     let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
     resultText.textContent = `Status: ${status}`;
+}
+
+// Function to check if color is within range
+function isWithinRange(color, range) {
+    return (
+        color[0] >= range.min[0] && color[0] <= range.max[0] &&
+        color[1] >= range.min[1] && color[1] <= range.max[1] &&
+        color[2] >= range.min[2] && color[2] <= range.max[2]
+    );
 }
 
 // Attach event listener to button with loading animation
