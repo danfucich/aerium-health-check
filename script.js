@@ -46,7 +46,6 @@ function startLoading(callback) {
     loadingContainer.style.display = "block";
     loadingBar.style.width = "0%";
     captureButton.disabled = true; // Disable button during processing
-    resultText.textContent = "Analyzing...";
 
     let interval = setInterval(() => {
         let progress = parseInt(loadingBar.style.width) || 0;
@@ -83,59 +82,40 @@ function analyzeColor() {
         "Time for a new refill!": 0,
         "Healthy!": 0,
         "Warning! Culture may be stressed.": 0,
-        "Culture crash? White/cloudy detected.": 0,
-        "No aerium detected": 0
+        "Culture crash? White/cloudy detected.": 0
     };
-
-    let detectedColors = [];
 
     // Sample 13 random points
     for (let i = 0; i < 13; i++) {
         let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
-        let r = pixel[0], g = pixel[1], b = pixel[2];
-        let colorName = classifyColor(r, g, b);
-        detectedColors.push(colorName);
 
-        if (isWithinRange([r, g, b], { min: [0, 50, 0], max: [30, 140, 30] })) {
+        if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
             statusCounts["Time for a new refill!"]++;
-        } else if (isWithinRange([r, g, b], { min: [50, 100, 50], max: [120, 255, 120] })) {
+        } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
-        } else if (isWithinRange([r, g, b], { min: [160, 80, 0], max: [255, 200, 120] })) { // Expanded yellow to include orange
+        } else if (isWithinRange(pixel, { min: [160, 160, 0], max: [255, 255, 100] })) {
             statusCounts["Warning! Culture may be stressed."]++;
-        } else if (isWithinRange([r, g, b], { min: [230, 230, 230], max: [255, 255, 255] })) {
+        } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
-        } else {
-            statusCounts["No aerium detected"]++;
         }
-    }
-
-    // If at least 7 of 13 samples match non-aerium colors, override classification
-    if (statusCounts["No aerium detected"] >= 7) {
-        resultText.textContent = `Detected Colors: ${detectedColors.join(", ")}`;
-    resultText.textContent += `
-Status: No aerium detected`;
-        return;
     }
 
     // Select the most frequently detected status
     let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-    resultText.textContent = `Status: ${status}`;
-}
 
-// Function to classify color to human-readable text
-function classifyColor(r, g, b) {
-    if (r > 150 && g < 100 && b < 100) return "Red";
-    if (b > 150 && r < 100 && g < 100) return "Blue";
-    if (r > 100 && b > 100 && g < 100) return "Purple";
-    if (r < 50 && g < 50 && b < 50) return "Black";
-    if (g > 150 && r < 100 && b < 100) return "Green";
-    if (r > 150 && g > 150 && b < 100) return "Yellow";
-    if (r > 180 && g > 100 && b < 80) return "Orange";
-    if (r > 200 && g > 200 && b > 200) return "White";
-    return "Unknown";
+    resultText.textContent = `Status: ${status}`;
 }
 
 // Attach event listener to button with loading animation
 captureButton.addEventListener("click", () => startLoading(analyzeColor));
+
+// Function to check if color is within range
+function isWithinRange(color, range) {
+    return (
+        color[0] >= range.min[0] && color[0] <= range.max[0] &&
+        color[1] >= range.min[1] && color[1] <= range.max[1] &&
+        color[2] >= range.min[2] && color[2] <= range.max[2]
+    );
+}
