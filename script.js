@@ -46,6 +46,7 @@ function startLoading(callback) {
     loadingContainer.style.display = "block";
     loadingBar.style.width = "0%";
     captureButton.disabled = true; // Disable button during processing
+    resultText.textContent = "Analyzing...";
 
     let interval = setInterval(() => {
         let progress = parseInt(loadingBar.style.width) || 0;
