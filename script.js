@@ -113,7 +113,8 @@ function analyzeColor() {
 
     // If at least 7 of 13 samples match non-aerium colors, override classification
     if (statusCounts["No aerium detected"] >= 7) {
-        resultText.textContent = `Detected Colors: ${detectedColors.join(", ")}
+        resultText.textContent = `Detected Colors: ${detectedColors.join(", ")}`;
+    resultText.textContent += `
 Status: No aerium detected`;
         return;
     }
