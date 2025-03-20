@@ -42,27 +42,27 @@ requestCameraAccess();
 
 // Function to start the loading animation
 function startLoading(callback) {
-    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
-    loadingContainer.style.display = "1";
+    let duration = Math.random() * (500 - 250) + 250; // Random between 0.25s and 0.5s
+
+    loadingContainer.style.opacity = "1"; // Ensure it becomes visible
     loadingBar.style.width = "0%";
     captureButton.disabled = true; // Disable button during processing
 
     let interval = setInterval(() => {
         let progress = parseInt(loadingBar.style.width) || 0;
         if (progress < 100) {
-            loadingBar.style.width = (progress + 20) + "%"; // Faster progress since delay is short
+            loadingBar.style.width = (progress + 20) + "%"; // Smooth progress
         } else {
             clearInterval(interval);
         }
     }, duration / 5);
 
     setTimeout(() => {
-        loadingContainer.style.opacity = "0"; 
+        loadingContainer.style.opacity = "0"; // Fade out instead of hiding
         captureButton.disabled = false; // Re-enable button
         callback(); // Call the actual analysis function
     }, duration);
 }
-
 // Function to analyze colors from the video feed and return a status
 function analyzeColor() {
     const canvas = document.createElement("canvas");
