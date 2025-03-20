@@ -34,8 +34,15 @@ body {
     margin: 10px auto;
     overflow: hidden;
     position: relative;
-    opacity: 0; /* Keep it invisible initially but holding space */
-    transition: opacity 0.2s ease-in-out;
+    opacity: 0; /* Keeps it hidden but holds space */
+    transition: opacity 0.3s ease-in-out;
+}
+
+#loadingBar {
+    width: 0%;
+    height: 100%;
+    background-color: #27ae60; /* Green loading bar */
+    transition: width 0.1s linear;
 }
 
 /* Video Container */
