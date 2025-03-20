@@ -43,7 +43,7 @@ requestCameraAccess();
 // Function to start the loading animation
 function startLoading(callback) {
     let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
-    loadingContainer.style.display = "block";
+    loadingContainer.style.display = "1";
     loadingBar.style.width = "0%";
     captureButton.disabled = true; // Disable button during processing
 
@@ -57,7 +57,7 @@ function startLoading(callback) {
     }, duration / 5);
 
     setTimeout(() => {
-        loadingContainer.style.display = "none"; // Hide loading bar
+        loadingContainer.style.opacity = "0"; 
         captureButton.disabled = false; // Re-enable button
         callback(); // Call the actual analysis function
     }, duration);
