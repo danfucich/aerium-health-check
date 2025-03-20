@@ -40,6 +40,29 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
+// Function to start the loading animation
+function startLoading(callback) {
+    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
+    loadingContainer.style.display = "block";
+    loadingBar.style.width = "0%";
+    captureButton.disabled = true; // Disable button during processing
+
+    let interval = setInterval(() => {
+        let progress = parseInt(loadingBar.style.width) || 0;
+        if (progress < 100) {
+            loadingBar.style.width = (progress + 20) + "%"; // Faster progress since delay is short
+        } else {
+            clearInterval(interval);
+        }
+    }, duration / 5);
+
+    setTimeout(() => {
+        loadingContainer.style.display = "none"; // Hide loading bar
+        captureButton.disabled = false; // Re-enable button
+        callback(); // Call the actual analysis function
+    }, duration);
+}
+
 // Function to analyze colors from the video feed
 function analyzeColor() {
     const canvas = document.createElement("canvas");
@@ -59,57 +82,40 @@ function analyzeColor() {
         "Time for a new refill!": 0,
         "Healthy!": 0,
         "Warning! Culture may be stressed.": 0,
-        "Culture crash? White/cloudy detected.": 0,
-        "No aerium detected": 0
+        "Culture crash? White/cloudy detected.": 0
     };
-
-    let detectedColors = [];
 
     // Sample 13 random points
     for (let i = 0; i < 13; i++) {
         let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
-        let colorName = classifyColor(pixel[0], pixel[1], pixel[2]);
-        detectedColors.push(colorName);
 
         if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
             statusCounts["Time for a new refill!"]++;
         } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
-        } else if (isWithinRange(pixel, { min: [160, 100, 0], max: [255, 200, 120] })) {
+        } else if (isWithinRange(pixel, { min: [160, 160, 0], max: [255, 255, 100] })) {
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
         }
     }
 
-    let mostCommonColor = detectedColors.sort((a,b) =>
-        detectedColors.filter(v => v===a).length - detectedColors.filter(v => v===b).length
-    ).pop();
+    // Select the most frequently detected status
+    let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
 
-    if (mostCommonColor && !statusCounts["Time for a new refill!"] &&
-        !statusCounts["Healthy!"] && !statusCounts["Warning! Culture may be stressed."] &&
-        !statusCounts["Culture crash? White/cloudy detected."]) {
-        resultText.textContent = `No aerium detected: ${mostCommonColor}`;
-    } else {
-        let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-        resultText.textContent = `Status: ${status}`;
-    }
-}
-
-// Function to classify colors into readable names
-function classifyColor(r, g, b) {
-    if (r > 150 && g < 100 && b < 100) return "Red";
-    if (b > 150 && r < 100 && g < 100) return "Blue";
-    if (r > 100 && b > 100 && g < 100) return "Purple";
-    if (r < 50 && g < 50 && b < 50) return "Black";
-    if (g > 150 && r < 100 && b < 100) return "Green";
-    if (r > 150 && g > 150 && b < 100) return "Yellow";
-    if (r > 180 && g > 100 && b < 80) return "Orange";
-    if (r > 200 && g > 200 && b > 200) return "White";
-    return "Unknown";
+    resultText.textContent = `Status: ${status}`;
 }
 
 // Attach event listener to button with loading animation
 captureButton.addEventListener("click", () => startLoading(analyzeColor));
+
+// Function to check if color is within range
+function isWithinRange(color, range) {
+    return (
+        color[0] >= range.min[0] && color[0] <= range.max[0] &&
+        color[1] >= range.min[1] && color[1] <= range.max[1] &&
+        color[2] >= range.min[2] && color[2] <= range.max[2]
+    );
+}
