@@ -63,6 +63,13 @@ function startLoading(callback) {
     }, duration);
 }
 
+let statusCounts = {
+        "Time for a new refill!": 0,
+        "Healthy!": 0,
+        "Warning! Culture may be stressed.": 0,
+        "Culture crash? White/cloudy detected.": 0
+    };
+
 // Function to analyze colors from the video feed
 function analyzeColor() {
     const canvas = document.createElement("canvas");
@@ -78,12 +85,15 @@ function analyzeColor() {
     const xEnd = xStart + Math.floor(canvas.width * 0.32);
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
-    let statusCounts = {
-        "Time for a new refill!": 0,
-        "Healthy!": 0,
-        "Warning! Culture may be stressed.": 0,
-        "Culture crash? White/cloudy detected.": 0
-    };
+    function updateStatus() {
+    let highestCategory = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
+
+    if (statusCounts[highestCategory] === 0) {
+        resultText.textContent = "Status: No valid reading detected.";
+    } else {
+        resultText.textContent = `Status: ${highestCategory}`;
+    }
+}
 
     // Sample 13 random points
     for (let i = 0; i < 13; i++) {
@@ -127,7 +137,10 @@ if (statusCounts[highestCategory] === 0) {
 captureButton.addEventListener("click", function() {
     resultText.textContent = "Analyzing..."; // Show loading status
     startLoading(() => {
-        analyzeColor(); // Ensure function is properly called
+        analyzeColor(); // Run the analysis
+        setTimeout(() => {
+            updateStatus(); // Ensure status updates after analysis
+        }, 50); // Small delay to allow update
     });
 });
 
