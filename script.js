@@ -58,7 +58,8 @@ function startLoading(callback) {
     }, duration / 5);
 
     setTimeout(() => {
-        loadingContainer.style.display = "none"; // Hide loading bar
+        loadingContainer.style.display = "none";
+        resultText.textContent = "Processing results..."; // Hide loading bar
         captureButton.disabled = false; // Re-enable button
         callback(); // Call the actual analysis function
     }, duration);
@@ -118,6 +119,7 @@ function analyzeColor() {
     } else {
         let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
         resultText.textContent = `Status: ${status}`;
+    captureButton.disabled = false;
     }
 }
 
