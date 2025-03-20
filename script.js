@@ -106,15 +106,21 @@ function analyzeColor() {
             statusCounts["No aerium detected: Blue"]++;  
         } else if (r > 120 && b > 120 && g < 90) {  
             statusCounts["No aerium detected: Purple"]++;  
-        } else if (r < 40 && g < 40 && b < 40) {  
+        } else if (r < 50 && g < 50 && b < 50) {  
             // New Black Detection
             statusCounts["No aerium detected: Black"]++;
         }
     }
 
     // Select the most frequently detected status
-    let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-    resultText.textContent = `Status: ${status}`;
+    let highestCategory = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
+    
+    if (statusCounts[highestCategory] === 0) {
+        resultText.textContent = "Status: No valid reading detected.";
+    } else {
+        resultText.textContent = `Status: ${highestCategory}`;
+    }
+    
 }
 
 // Attach event listener to button with loading animation
@@ -142,10 +148,10 @@ resultText.style.borderRadius = "8px";
 resultText.style.zIndex = "10"; // Ensures it stays above the video
 
 captureButton.style.position = "absolute";
-captureButton.style.bottom = "10%";
+captureButton.style.bottom = "5%";
 captureButton.style.left = "50%";
 captureButton.style.transform = "translateX(-50%)";
-captureButton.style.width = "80%";
+captureButton.style.width = "90%";
 captureButton.style.fontSize = "16px";
 captureButton.style.padding = "10px";
 captureButton.style.zIndex = "10"; // Ensures it stays above the video
