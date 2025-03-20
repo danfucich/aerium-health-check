@@ -63,14 +63,7 @@ function startLoading(callback) {
     }, duration);
 }
 
-let statusCounts = {
-        "Time for a new refill!": 0,
-        "Healthy!": 0,
-        "Warning! Culture may be stressed.": 0,
-        "Culture crash? White/cloudy detected.": 0
-    };
-
-// Function to analyze colors from the video feed
+// Function to analyze colors from the video feed and return a status
 function analyzeColor() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -85,28 +78,29 @@ function analyzeColor() {
     const xEnd = xStart + Math.floor(canvas.width * 0.32);
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
 
-    function updateStatus() {
-    let highestCategory = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-
-    if (statusCounts[highestCategory] === 0) {
-        resultText.textContent = "Status: No valid reading detected.";
-    } else {
-        resultText.textContent = `Status: ${highestCategory}`;
-    }
-}
+    let statusCounts = {
+        "Time for a new refill!": 0,
+        "Healthy!": 0,
+        "Warning! Culture may be stressed.": 0,
+        "Culture crash? White/cloudy detected.": 0,
+        "No aerium detected: Red": 0,
+        "No aerium detected: Blue": 0,
+        "No aerium detected: Purple": 0,
+        "No aerium detected: Black": 0
+    };
 
     // Sample 13 random points
     for (let i = 0; i < 13; i++) {
         let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
         let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
         let pixel = ctx.getImageData(x, y, 1, 1).data;
+        let [r, g, b] = pixel; // Extract RGB values
 
         if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
             statusCounts["Time for a new refill!"]++;
         } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
         } else if (isWithinRange(pixel, { min: [160, 120, 0], max: [255, 180, 120] })) {  
-            // Expanded Orange detection
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
@@ -117,7 +111,6 @@ function analyzeColor() {
         } else if (r > 120 && b > 120 && g < 90) {  
             statusCounts["No aerium detected: Purple"]++;  
         } else if (r < 50 && g < 50 && b < 50) {  
-            // New Black Detection
             statusCounts["No aerium detected: Black"]++;
         }
     }
@@ -125,22 +118,15 @@ function analyzeColor() {
     // Select the most frequently detected status
     let highestCategory = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
 
-if (statusCounts[highestCategory] === 0) {
-    resultText.textContent = "Status: No valid reading detected.";
-} else {
-    resultText.textContent = `Status: ${highestCategory}`;
-}
-    
+    return statusCounts[highestCategory] === 0 ? "No valid reading detected." : highestCategory;
 }
 
 // Attach event listener to button with loading animation
 captureButton.addEventListener("click", function() {
     resultText.textContent = "Analyzing..."; // Show loading status
     startLoading(() => {
-        analyzeColor(); // Run the analysis
-        setTimeout(() => {
-            updateStatus(); // Ensure status updates after analysis
-        }, 50); // Small delay to allow update
+        let status = analyzeColor(); // Get status from analyzeColor()
+        resultText.textContent = `Status: ${status}`; // Update after analysis
     });
 });
 
