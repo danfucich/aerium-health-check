@@ -44,8 +44,10 @@ requestCameraAccess();
 function startLoading(callback) {
     let duration = Math.random() * (500 - 250) + 250; // Random between 0.25s and 0.5s
 
-    loadingContainer.style.opacity = "1"; // Ensure it becomes visible
-    loadingBar.style.width = "0%";
+    // Make sure the loading bar is visible
+    loadingContainer.style.opacity = "1"; 
+    loadingBar.style.width = "0%"; // Reset width
+
     captureButton.disabled = true; // Disable button during processing
 
     let interval = setInterval(() => {
@@ -58,9 +60,12 @@ function startLoading(callback) {
     }, duration / 5);
 
     setTimeout(() => {
-        loadingContainer.style.opacity = "0"; // Fade out instead of hiding
-        captureButton.disabled = false; // Re-enable button
-        callback(); // Call the actual analysis function
+        loadingBar.style.width = "100%"; // Ensure full width before fading out
+        setTimeout(() => {
+            loadingContainer.style.opacity = "0"; // Fade out
+            captureButton.disabled = false; // Re-enable button
+            callback(); // Call the analysis function
+        }, 300); // Small delay for fade-out
     }, duration);
 }
 // Function to analyze colors from the video feed and return a status
@@ -125,7 +130,7 @@ function analyzeColor() {
 }
 
 // Attach event listener to button with loading animation
-captureButton.addEventListener("click", function() {
+captureButton.addEventListener("click", () => startLoading(analyzeColor));
     resultText.textContent = "Analyzing..."; // Show loading status
     startLoading(() => {
         let status = analyzeColor(); // Get status from analyzeColor()
@@ -144,7 +149,7 @@ function isWithinRange(color, range) {
 
 // Move analyze button and status inside video container
 resultText.style.position = "absolute";
-resultText.style.top = "25%"; // Move the status above the overlay
+resultText.style.top = "30%"; // Move the status above the overlay
 resultText.style.left = "50%";
 resultText.style.transform = "translateX(-50%)";
 resultText.style.background = "rgba(255, 255, 255, 0.8)";
@@ -153,7 +158,7 @@ resultText.style.borderRadius = "8px";
 resultText.style.zIndex = "10"; // Ensures it stays above the video
 
 captureButton.style.position = "absolute";
-captureButton.style.bottom = "5%";
+captureButton.style.bottom = "2%";
 captureButton.style.left = "50%";
 captureButton.style.transform = "translateX(-50%)";
 captureButton.style.width = "90%";
