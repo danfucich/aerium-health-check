@@ -95,10 +95,20 @@ function analyzeColor() {
             statusCounts["Time for a new refill!"]++;
         } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
-        } else if (isWithinRange(pixel, { min: [160, 160, 0], max: [255, 255, 100] })) {
+        } else if (isWithinRange(pixel, { min: [160, 120, 0], max: [255, 180, 120] })) {  
+            // Expanded Orange detection
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
+        } else if (r > 150 && g < 100 && b < 100) {  
+            statusCounts["No aerium detected: Red"]++;  
+        } else if (b > 150 && r < 100 && g < 100) {  
+            statusCounts["No aerium detected: Blue"]++;  
+        } else if (r > 120 && b > 120 && g < 90) {  
+            statusCounts["No aerium detected: Purple"]++;  
+        } else if (r < 40 && g < 40 && b < 40) {  
+            // New Black Detection
+            statusCounts["No aerium detected: Black"]++;
         }
     }
 
