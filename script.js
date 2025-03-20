@@ -85,7 +85,9 @@ function analyzeColor() {
 }
 
 // Attach event listener to button with loading animation
-captureButton.addEventListener("click", () => startLoading(analyzeColor));
+captureButton.addEventListener("click", () => {
+    startLoading(analyzeColor);
+});
 
 // Function to check if color is within range
 function isWithinRange(color, range) {
