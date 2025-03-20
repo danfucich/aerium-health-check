@@ -123,7 +123,7 @@ function isWithinRange(color, range) {
 
 // Move analyze button and status inside video container
 resultText.style.position = "absolute";
-resultText.style.top = "10%"; // Move the status above the overlay
+resultText.style.top = "15%"; // Move the status above the overlay
 resultText.style.left = "50%";
 resultText.style.transform = "translateX(-50%)";
 resultText.style.background = "rgba(255, 255, 255, 0.8)";
@@ -132,7 +132,7 @@ resultText.style.borderRadius = "8px";
 resultText.style.zIndex = "10"; // Ensures it stays above the video
 
 captureButton.style.position = "absolute";
-captureButton.style.bottom = "5%";
+captureButton.style.bottom = "10%";
 captureButton.style.left = "50%";
 captureButton.style.transform = "translateX(-50%)";
 captureButton.style.width = "80%";
