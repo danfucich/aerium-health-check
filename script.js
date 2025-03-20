@@ -98,9 +98,9 @@ function analyzeColor() {
 
         if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
             statusCounts["Time for a new refill!"]++;
-        } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
+        } else if (isWithinRange(pixel, { min: [40, 90, 40], max: [120, 255, 120] })) {
             statusCounts["Healthy!"]++;
-        } else if (isWithinRange(pixel, { min: [160, 120, 0], max: [255, 180, 120] })) {  
+        } else if (isWithinRange(pixel, { min: [140, 100, 0], max: [255, 200, 120] })) {
             statusCounts["Warning! Culture may be stressed."]++;
         } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
             statusCounts["Culture crash? White/cloudy detected."]++;
@@ -110,8 +110,11 @@ function analyzeColor() {
             statusCounts["No aerium detected: Blue"]++;  
         } else if (r > 120 && b > 120 && g < 90) {  
             statusCounts["No aerium detected: Purple"]++;  
-        } else if (r < 50 && g < 50 && b < 50) {  
+        } else if (r < 35 && g < 35 && b < 35) {  
             statusCounts["No aerium detected: Black"]++;
+        } else if (r < 40 && g > 50 && g < 110 && b < 40) {  
+            // NEW: Dark green (mature algae) detection!
+            statusCounts["Mature algae detected: Time to Change!"]++;
         }
     }
 
