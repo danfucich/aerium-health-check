@@ -106,6 +106,7 @@ resultText.style.transform = "translateX(-50%)";
 resultText.style.background = "rgba(255, 255, 255, 0.7)";
 resultText.style.padding = "5px 10px";
 resultText.style.borderRadius = "8px";
+resultText.style.zIndex = "10"; // Ensures it stays above the video
 
 captureButton.style.position = "absolute";
 captureButton.style.bottom = "5%";
@@ -114,3 +115,4 @@ captureButton.style.transform = "translateX(-50%)";
 captureButton.style.width = "80%";
 captureButton.style.fontSize = "16px";
 captureButton.style.padding = "10px";
+captureButton.style.zIndex = "10"; // Ensures it stays above the video
