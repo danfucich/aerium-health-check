@@ -40,29 +40,6 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
-// Function to start the loading animation
-function startLoading(callback) {
-    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
-    loadingContainer.style.display = "block";
-    loadingBar.style.width = "0%";
-    captureButton.disabled = true; // Disable button during processing
-
-    let interval = setInterval(() => {
-        let progress = parseInt(loadingBar.style.width) || 0;
-        if (progress < 100) {
-            loadingBar.style.width = (progress + 20) + "%"; // Faster progress since delay is short
-        } else {
-            clearInterval(interval);
-        }
-    }, duration / 5);
-
-    setTimeout(() => {
-        loadingContainer.style.display = "none"; // Hide loading bar
-        captureButton.disabled = false; // Re-enable button
-        callback(); // Call the actual analysis function
-    }, duration);
-}
-
 // Function to analyze colors from the video feed
 function analyzeColor() {
     const canvas = document.createElement("canvas");
@@ -104,7 +81,6 @@ function analyzeColor() {
 
     // Select the most frequently detected status
     let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-
     resultText.textContent = `Status: ${status}`;
 }
 
@@ -119,3 +95,20 @@ function isWithinRange(color, range) {
         color[2] >= range.min[2] && color[2] <= range.max[2]
     );
 }
+
+// Move analyze button and status inside video container
+resultText.style.position = "absolute";
+resultText.style.bottom = "15%";
+resultText.style.left = "50%";
+resultText.style.transform = "translateX(-50%)";
+resultText.style.background = "rgba(255, 255, 255, 0.7)";
+resultText.style.padding = "5px 10px";
+resultText.style.borderRadius = "8px";
+
+captureButton.style.position = "absolute";
+captureButton.style.bottom = "5%";
+captureButton.style.left = "50%";
+captureButton.style.transform = "translateX(-50%)";
+captureButton.style.width = "80%";
+captureButton.style.fontSize = "16px";
+captureButton.style.padding = "10px";
