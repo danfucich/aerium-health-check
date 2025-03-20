@@ -44,10 +44,8 @@ requestCameraAccess();
 function startLoading(callback) {
     let duration = Math.random() * (500 - 250) + 250; // Random between 0.25s and 0.5s
 
-    // Make sure the loading bar is visible
-    loadingContainer.style.opacity = "1"; 
-    loadingBar.style.width = "0%"; // Reset width
-
+    loadingContainer.style.opacity = "1"; // Ensure it becomes visible
+    loadingBar.style.width = "0%";
     captureButton.disabled = true; // Disable button during processing
 
     let interval = setInterval(() => {
@@ -60,12 +58,9 @@ function startLoading(callback) {
     }, duration / 5);
 
     setTimeout(() => {
-        loadingBar.style.width = "100%"; // Ensure full width before fading out
-        setTimeout(() => {
-            loadingContainer.style.opacity = "0"; // Fade out
-            captureButton.disabled = false; // Re-enable button
-            callback(); // Call the analysis function
-        }, 300); // Small delay for fade-out
+        loadingContainer.style.opacity = "0"; // Fade out instead of hiding
+        captureButton.disabled = false; // Re-enable button
+        callback(); // Call the actual analysis function
     }, duration);
 }
 // Function to analyze colors from the video feed and return a status
@@ -130,7 +125,7 @@ function analyzeColor() {
 }
 
 // Attach event listener to button with loading animation
-captureButton.addEventListener("click", () => startLoading(analyzeColor));
+captureButton.addEventListener("click", function() {
     resultText.textContent = "Analyzing..."; // Show loading status
     startLoading(() => {
         let status = analyzeColor(); // Get status from analyzeColor()
