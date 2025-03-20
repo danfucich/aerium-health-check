@@ -123,7 +123,7 @@ function isWithinRange(color, range) {
 
 // Move analyze button and status inside video container
 resultText.style.position = "absolute";
-resultText.style.top = "15%"; // Move the status above the overlay
+resultText.style.top = "25%"; // Move the status above the overlay
 resultText.style.left = "50%";
 resultText.style.transform = "translateX(-50%)";
 resultText.style.background = "rgba(255, 255, 255, 0.8)";
