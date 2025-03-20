@@ -40,31 +40,6 @@ function requestCameraAccess() {
 // Request camera access on page load
 requestCameraAccess();
 
-// Function to start the loading animation
-function startLoading(callback) {
-    let duration = Math.random() * (500 - 250) + 250; // Random time between 0.25s and 0.5s
-    loadingContainer.style.display = "block";
-    loadingBar.style.width = "0%";
-    captureButton.disabled = true; // Disable button during processing
-    resultText.textContent = "Analyzing...";
-
-    let interval = setInterval(() => {
-        let progress = parseInt(loadingBar.style.width) || 0;
-        if (progress < 100) {
-            loadingBar.style.width = (progress + 20) + "%"; // Faster progress since delay is short
-        } else {
-            clearInterval(interval);
-        }
-    }, duration / 5);
-
-    setTimeout(() => {
-        loadingContainer.style.display = "none";
-        resultText.textContent = "Processing results..."; // Hide loading bar
-        captureButton.disabled = false; // Re-enable button
-        callback(); // Call the actual analysis function
-    }, duration);
-}
-
 // Function to analyze colors from the video feed
 function analyzeColor() {
     const canvas = document.createElement("canvas");
@@ -84,7 +59,8 @@ function analyzeColor() {
         "Time for a new refill!": 0,
         "Healthy!": 0,
         "Warning! Culture may be stressed.": 0,
-        "Culture crash? White/cloudy detected.": 0
+        "Culture crash? White/cloudy detected.": 0,
+        "No aerium detected": 0
     };
 
     let detectedColors = [];
@@ -119,7 +95,6 @@ function analyzeColor() {
     } else {
         let status = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
         resultText.textContent = `Status: ${status}`;
-    captureButton.disabled = false;
     }
 }
 
