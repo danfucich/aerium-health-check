@@ -114,18 +114,21 @@ function analyzeColor() {
 
     // Select the most frequently detected status
     let highestCategory = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-    
-    if (statusCounts[highestCategory] === 0) {
-        resultText.textContent = "Status: No valid reading detected.";
-    } else {
-        resultText.textContent = `Status: ${highestCategory}`;
-    }
+
+if (statusCounts[highestCategory] === 0) {
+    resultText.textContent = "Status: No valid reading detected.";
+} else {
+    resultText.textContent = `Status: ${highestCategory}`;
+}
     
 }
 
 // Attach event listener to button with loading animation
-captureButton.addEventListener("click", () => {
-    startLoading(analyzeColor);
+captureButton.addEventListener("click", function() {
+    resultText.textContent = "Analyzing..."; // Show loading status
+    startLoading(() => {
+        analyzeColor(); // Ensure function is properly called
+    });
 });
 
 // Function to check if color is within range
