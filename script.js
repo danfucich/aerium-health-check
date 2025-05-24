@@ -1,31 +1,18 @@
+
 const video = document.getElementById("camera");
 const captureButton = document.getElementById("capture");
 const resultText = document.getElementById("result");
 
-// Create loading bar elements
-const loadingContainer = document.createElement("div");
-const loadingBar = document.createElement("div");
+// Triangle sampling helpers
+function isPointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
+    const areaOrig = Math.abs((bx - ax)*(cy - ay) - (cx - ax)*(by - ay));
+    const area1 = Math.abs((ax - px)*(by - py) - (bx - px)*(ay - py));
+    const area2 = Math.abs((bx - px)*(cy - py) - (cx - px)*(by - py));
+    const area3 = Math.abs((cx - px)*(ay - py) - (ax - px)*(cy - py));
+    return (area1 + area2 + area3) <= areaOrig;
+}
 
-// Style Loading Bar
-loadingContainer.style.width = "90%";
-loadingContainer.style.maxWidth = "600px";
-loadingContainer.style.height = "10px";
-loadingContainer.style.backgroundColor = "#ddd";
-loadingContainer.style.borderRadius = "5px";
-loadingContainer.style.margin = "10px auto";
-loadingContainer.style.display = "none"; // Hidden initially
-loadingContainer.style.overflow = "hidden";
-loadingContainer.style.position = "relative";
-
-loadingBar.style.width = "0%";
-loadingBar.style.height = "100%";
-loadingBar.style.backgroundColor = "#27ae60"; // Green loading bar
-loadingBar.style.transition = "width 0.1s linear";
-
-loadingContainer.appendChild(loadingBar);
-document.body.insertBefore(loadingContainer, resultText);
-
-// Function to request camera access
+// Request camera access
 function requestCameraAccess() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
         .then(stream => {
@@ -36,34 +23,34 @@ function requestCameraAccess() {
             resultText.textContent = "Error: Unable to access camera. Please allow permissions.";
         });
 }
-
-// Request camera access on page load
 requestCameraAccess();
 
-// Function to start the loading animation
+// Start loading animation
 function startLoading(callback) {
-    let duration = Math.random() * (500 - 250) + 250; // Random between 0.25s and 0.5s
-
-    loadingContainer.style.opacity = "1"; // Ensure it becomes visible
+    let duration = Math.random() * (500 - 250) + 250;
+    loadingContainer.style.opacity = "1";
     loadingBar.style.width = "0%";
-    captureButton.disabled = true; // Disable button during processing
-
+    captureButton.disabled = true;
+    let progress = 0;
     let interval = setInterval(() => {
-        let progress = parseInt(loadingBar.style.width) || 0;
         if (progress < 100) {
-            loadingBar.style.width = (progress + 20) + "%"; // Smooth progress
+            progress += 20;
+            loadingBar.style.width = `${progress}%`;
         } else {
             clearInterval(interval);
         }
     }, duration / 5);
-
     setTimeout(() => {
-        loadingContainer.style.opacity = "0"; // Fade out instead of hiding
-        captureButton.disabled = false; // Re-enable button
-        callback(); // Call the actual analysis function
+        loadingBar.style.width = "100%";
+        setTimeout(() => {
+            loadingContainer.style.opacity = "0";
+            captureButton.disabled = false;
+            callback();
+        }, 300);
     }, duration);
 }
-// Function to analyze colors from the video feed and return a status
+
+// Main color analysis
 function analyzeColor() {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -72,11 +59,14 @@ function analyzeColor() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Define the overlay region (7.5:4 aspect ratio)
     const xStart = Math.floor(canvas.width * 0.34);
     const yStart = Math.floor(canvas.height * 0.20);
     const xEnd = xStart + Math.floor(canvas.width * 0.32);
     const yEnd = yStart + Math.floor(canvas.height * 0.60);
+
+    const ax = xStart, ay = yStart;
+    const bx = xEnd, by = yStart;
+    const cx = (xStart + xEnd) / 2, cy = yStart + (yEnd - yStart) * 0.9;
 
     let statusCounts = {
         "Time for a new refill!": 0,
@@ -89,51 +79,42 @@ function analyzeColor() {
         "No aerium detected: Black": 0
     };
 
-    // Sample 13 random points
-    for (let i = 0; i < 13; i++) {
+    let samples = 0;
+    while (samples < 13) {
         let x = Math.floor(Math.random() * (xEnd - xStart) + xStart);
-        let y = Math.floor(Math.random() * (yEnd - yStart) + yStart);
-        let pixel = ctx.getImageData(x, y, 1, 1).data;
-        let [r, g, b] = pixel; // Extract RGB values
+        let y = Math.floor(Math.random() * ((cy) - yStart) + yStart);
+        if (isPointInTriangle(x, y, ax, ay, bx, by, cx, cy)) {
+            let pixel = ctx.getImageData(x, y, 1, 1).data;
+            const [r, g, b] = pixel;
 
-        if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
-            statusCounts["Time for a new refill!"]++;
-        } else if (isWithinRange(pixel, { min: [40, 90, 40], max: [120, 255, 120] })) {
-            statusCounts["Healthy!"]++;
-        } else if (isWithinRange(pixel, { min: [140, 100, 0], max: [255, 200, 120] })) {
-            statusCounts["Warning! Culture may be stressed."]++;
-        } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
-            statusCounts["Culture crash? White/cloudy detected."]++;
-        } else if (r > 150 && g < 100 && b < 100) {  
-            statusCounts["No aerium detected: Red"]++;  
-        } else if (b > 150 && r < 100 && g < 100) {  
-            statusCounts["No aerium detected: Blue"]++;  
-        } else if (r > 120 && b > 120 && g < 90) {  
-            statusCounts["No aerium detected: Purple"]++;  
-        } else if (r < 35 && g < 35 && b < 35) {  
-            statusCounts["No aerium detected: Black"]++;
-        } else if (r < 40 && g > 50 && g < 110 && b < 40) {  
-            // NEW: Dark green (mature algae) detection!
-            statusCounts["Mature algae detected: Time to Change!"]++;
+            if (isWithinRange(pixel, { min: [0, 50, 0], max: [30, 140, 30] })) {
+                statusCounts["Time for a new refill!"]++;
+            } else if (isWithinRange(pixel, { min: [50, 100, 50], max: [120, 255, 120] })) {
+                statusCounts["Healthy!"]++;
+            } else if (isWithinRange(pixel, { min: [160, 120, 0], max: [255, 180, 120] })) {
+                statusCounts["Warning! Culture may be stressed."]++;
+            } else if (isWithinRange(pixel, { min: [230, 230, 230], max: [255, 255, 255] })) {
+                statusCounts["Culture crash? White/cloudy detected."]++;
+            } else if (r > 150 && g < 100 && b < 100) {
+                statusCounts["No aerium detected: Red"]++;
+            } else if (b > 150 && r < 100 && g < 100) {
+                statusCounts["No aerium detected: Blue"]++;
+            } else if (r > 120 && b > 120 && g < 90) {
+                statusCounts["No aerium detected: Purple"]++;
+            } else if (r < 50 && g < 50 && b < 50) {
+                statusCounts["No aerium detected: Black"]++;
+            }
+            samples++;
         }
     }
 
-    // Select the most frequently detected status
     let highestCategory = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
-
-    return statusCounts[highestCategory] === 0 ? "No valid reading detected." : highestCategory;
+    resultText.textContent = statusCounts[highestCategory] > 0
+        ? `Status: ${highestCategory}`
+        : "Status: No valid reading detected.";
 }
 
-// Attach event listener to button with loading animation
-captureButton.addEventListener("click", function() {
-    resultText.textContent = "Analyzing..."; // Show loading status
-    startLoading(() => {
-        let status = analyzeColor(); // Get status from analyzeColor()
-        resultText.textContent = `Status: ${status}`; // Update after analysis
-    });
-});
-
-// Function to check if color is within range
+// Utilities
 function isWithinRange(color, range) {
     return (
         color[0] >= range.min[0] && color[0] <= range.max[0] &&
@@ -142,21 +123,8 @@ function isWithinRange(color, range) {
     );
 }
 
-// Move analyze button and status inside video container
-resultText.style.position = "absolute";
-resultText.style.top = "30%"; // Move the status above the overlay
-resultText.style.left = "50%";
-resultText.style.transform = "translateX(-50%)";
-resultText.style.background = "rgba(255, 255, 255, 0.8)";
-resultText.style.padding = "5px 10px";
-resultText.style.borderRadius = "8px";
-resultText.style.zIndex = "10"; // Ensures it stays above the video
-
-captureButton.style.position = "absolute";
-captureButton.style.bottom = "2%";
-captureButton.style.left = "50%";
-captureButton.style.transform = "translateX(-50%)";
-captureButton.style.width = "90%";
-captureButton.style.fontSize = "16px";
-captureButton.style.padding = "10px";
-captureButton.style.zIndex = "10"; // Ensures it stays above the video
+// Attach event
+captureButton.addEventListener("click", () => {
+    resultText.textContent = "Analyzing...";
+    startLoading(analyzeColor);
+});
